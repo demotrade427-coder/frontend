@@ -1,6 +1,3 @@
-[build.environment]
-  NPM_CONFIG_PRODUCTION = ""
-
 [build]
-  command = "npm install --include=dev && npm exec -- vite build"
+  command = "npm i && chmod +x ./node_modules/vite/bin/vite.js && node ./node_modules/vite/bin/vite.js build"
   publish = "dist"
