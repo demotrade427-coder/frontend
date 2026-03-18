@@ -45,7 +45,7 @@ const CRYPTO_NAMES = {
 
 function MarketItem({ data, isSelected, onClick }) {
   const Icon = CRYPTO_ICONS[data.symbol] || FaBitcoin;
-  const isPositive = data.changePercent >= 0;
+  const isPositive = data.change >= 0;
   
   return (
     <motion.button
@@ -78,7 +78,7 @@ function MarketItem({ data, isSelected, onClick }) {
           isPositive ? 'text-emerald-400' : 'text-red-400'
         }`}>
           {isPositive ? <MdKeyboardArrowUp className="w-3 h-3" /> : <MdKeyboardArrowDown className="w-3 h-3" />}
-          {isPositive ? '+' : ''}{data.changePercent?.toFixed(2)}%
+          {isPositive ? '+' : ''}{data.change?.toFixed(2)}%
         </div>
       </div>
     </motion.button>
