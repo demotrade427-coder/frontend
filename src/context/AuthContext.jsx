@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+
 const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
@@ -28,7 +30,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const { data } = await axios.post('/api/auth/login', { email, password });
+      const { data } = await axios.post(`${API_URL}/api/auth/login`, { email, password });
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
@@ -41,7 +43,7 @@ export const AuthProvider = ({ children }) => {
 
   const adminLogin = async (email, password) => {
     try {
-      const { data } = await axios.post('/api/auth/admin/login', { email, password });
+      const { data } = await axios.post(`${API_URL}/api/auth/admin/login`, { email, password });
       localStorage.setItem('adminToken', data.token);
       localStorage.setItem('admin', JSON.stringify(data.admin));
       axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
@@ -54,7 +56,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const { data } = await axios.post('/api/auth/register', userData);
+      const { data } = await axios.post(`${API_URL}/api/auth/register`, userData);
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;

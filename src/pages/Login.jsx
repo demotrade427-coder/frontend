@@ -26,7 +26,7 @@ function Login() {
 
     // First try admin login using direct axios (bypass interceptor)
     try {
-      const adminRes = await axios.post('http://localhost:5000/api/admin/login', { 
+      const adminRes = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/admin/login`, { 
         username: formData.email, 
         password: formData.password 
       });
