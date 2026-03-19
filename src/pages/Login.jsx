@@ -3,13 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { HiMail, HiLockClosed, HiLogin } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import API from '../utils/api';
 
 function Login() {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, adminLogin } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -17,42 +17,20 @@ function Login() {
     setError('');
     setLoading(true);
 
-    // Clear any existing tokens and axios headers first
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('adminToken');
     localStorage.removeItem('admin');
-    delete axios.defaults.headers.common['Authorization'];
 
-    // First try admin login using direct axios (bypass interceptor)
-    try {
-      const adminRes = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/admin/login`, { 
-        username: formData.email, 
-        password: formData.password 
-      });
-      
-      if (adminRes.data.token) {
-        localStorage.setItem('adminToken', adminRes.data.token);
-        localStorage.setItem('admin', JSON.stringify(adminRes.data.admin));
-        axios.defaults.headers.common['Authorization'] = `Bearer ${adminRes.data.token}`;
-        window.location.href = '/admin';
-        return;
-      }
-    } catch (adminErr) {
-      // Admin login failed, clear axios header and try user login
-      delete axios.defaults.headers.common['Authorization'];
-    }
-
-    // If admin login fails, try user login
     try {
       const result = await login(formData.email, formData.password);
+      
       if (result.success) {
-        // Ensure axios header is set for user token
-        const token = localStorage.getItem('token');
-        if (token) {
-          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        if (result.user?.isAdmin || result.user?.role === 'super_admin') {
+          navigate('/admin');
+        } else {
+          navigate('/dashboard');
         }
-        navigate('/dashboard');
       } else {
         setError(result.message || 'Invalid credentials');
       }
@@ -97,6 +75,7 @@ function Login() {
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-all"
                   placeholder="you@example.com"
+                  autoComplete="email"
                 />
               </div>
             </div>
@@ -112,6 +91,7 @@ function Login() {
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-all"
                   placeholder="Enter your password"
+                  autoComplete="current-password"
                 />
               </div>
             </div>

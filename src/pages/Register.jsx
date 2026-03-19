@@ -151,14 +151,15 @@ function Register() {
               <label className="block text-gray-400 text-sm mb-2">Password</label>
               <div className="relative">
                 <HiLockClosed className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                <input
-                  type="password"
-                  required
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-all"
-                  placeholder="Create a password"
-                />
+                  <input
+                    type="password"
+                    required
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-all"
+                    placeholder="Create a password"
+                    autoComplete="new-password"
+                  />
               </div>
             </div>
 
@@ -166,14 +167,15 @@ function Register() {
               <label className="block text-gray-400 text-sm mb-2">Confirm Password</label>
               <div className="relative">
                 <HiLockClosed className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                <input
-                  type="password"
-                  required
-                  value={formData.confirmPassword}
-                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-all"
-                  placeholder="Confirm your password"
-                />
+                  <input
+                    type="password"
+                    required
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                    className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-all"
+                    placeholder="Confirm your password"
+                    autoComplete="new-password"
+                  />
               </div>
             </div>
 

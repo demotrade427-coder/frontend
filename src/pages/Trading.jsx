@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Toaster, toast } from 'react-hot-toast';
 import API from '../utils/api';
-import { HiArrowUp, HiArrowDown, HiPlus, HiMinus, HiTrendingUp, HiX, HiCheck, HiBell } from 'react-icons/hi';
+import { HiArrowUp, HiArrowDown, HiPlus, HiMinus, HiTrendingUp, HiX, HiCheck, HiRefresh } from 'react-icons/hi';
 import MarketList from '../components/MarketList';
 import TradingChart from '../components/TradingChart';
 import MarketTicker from '../components/MarketTicker';
@@ -14,6 +14,24 @@ const POPULAR_PAIRS = [
   'ADAUSDT', 'DOGEUSDT', 'AVAXUSDT', 'DOTUSDT', 'MATICUSDT',
   'LINKUSDT', 'LTCUSDT', 'UNIUSDT', 'ATOMUSDT', 'XLMUSDT'
 ];
+
+const FALLBACK_PRICES = {
+  BTCUSDT: { price: 67450.00, change: 2.15, high: 68000, low: 66000, volume: 28500000000 },
+  ETHUSDT: { price: 3520.00, change: 1.82, high: 3600, low: 3450, volume: 15200000000 },
+  BNBUSDT: { price: 605.00, change: -0.45, high: 615, low: 598, volume: 1800000000 },
+  SOLUSDT: { price: 145.00, change: 3.25, high: 150, low: 140, volume: 3500000000 },
+  XRPUSDT: { price: 0.52, change: -1.20, high: 0.54, low: 0.51, volume: 1200000000 },
+  ADAUSDT: { price: 0.45, change: 0.80, high: 0.47, low: 0.44, volume: 450000000 },
+  DOGEUSDT: { price: 0.12, change: 5.10, high: 0.13, low: 0.11, volume: 800000000 },
+  AVAXUSDT: { price: 35.00, change: 2.30, high: 36, low: 34, volume: 520000000 },
+  DOTUSDT: { price: 7.50, change: -0.80, high: 7.7, low: 7.4, volume: 310000000 },
+  MATICUSDT: { price: 0.85, change: 1.50, high: 0.88, low: 0.83, volume: 420000000 },
+  LINKUSDT: { price: 15.00, change: 0.90, high: 15.5, low: 14.8, volume: 580000000 },
+  LTCUSDT: { price: 85.00, change: -0.30, high: 87, low: 84, volume: 390000000 },
+  UNIUSDT: { price: 10.00, change: 2.10, high: 10.3, low: 9.8, volume: 220000000 },
+  ATOMUSDT: { price: 9.00, change: 1.20, high: 9.2, low: 8.8, volume: 180000000 },
+  XLMUSDT: { price: 0.12, change: 0.70, high: 0.125, low: 0.118, volume: 95000000 },
+};
 
 function formatPrice(price) {
   if (!price) return '0.00';
@@ -33,18 +51,16 @@ function PriceDisplay({ price, prevPrice, size = 'normal' }) {
       setDirection(price > prevRef.current ? 'up' : 'down');
       setFlash(true);
       prevRef.current = price;
-      
       const timer = setTimeout(() => {
         setDirection(null);
         setFlash(false);
       }, 300);
-      
       return () => clearTimeout(timer);
     }
   }, [price]);
 
   const colorClass = direction === 'up' ? 'text-emerald-400' : direction === 'down' ? 'text-red-400' : 'text-white';
-  const textSize = size === 'large' ? 'text-3xl lg:text-4xl' : 'text-lg lg:text-xl';
+  const textSize = size === 'large' ? 'text-2xl sm:text-3xl lg:text-4xl' : 'text-lg lg:text-xl';
 
   return (
     <motion.span
@@ -69,10 +85,8 @@ function TradeResultModal({ result, trade, onClose }) {
       <motion.div
         initial={{ scale: 0.5, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className={`relative p-8 rounded-3xl ${
-          result === 'win' 
-            ? 'bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 border-2 border-emerald-500' 
-            : 'bg-gradient-to-br from-red-500/20 to-red-600/20 border-2 border-red-500'
+        className={`relative p-6 sm:p-8 rounded-2xl sm:rounded-3xl ${
+          result === 'win' ? 'bg-emerald-900/90 border-2 border-emerald-500' : 'bg-red-900/90 border-2 border-red-500'
         }`}
       >
         <div className="text-center">
@@ -80,39 +94,23 @@ function TradeResultModal({ result, trade, onClose }) {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: 'spring' }}
-            className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-4 ${
+            className={`w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full flex items-center justify-center mb-4 ${
               result === 'win' ? 'bg-emerald-500' : 'bg-red-500'
             }`}
           >
-            {result === 'win' ? (
-              <HiCheck className="w-10 h-10 text-white" />
-            ) : (
-              <HiX className="w-10 h-10 text-white" />
-            )}
+            {result === 'win' ? <HiCheck className="w-8 h-8 sm:w-10 sm:h-10 text-white" /> : <HiX className="w-8 h-8 sm:w-10 sm:h-10 text-white" />}
           </motion.div>
-          
-          <h2 className={`text-3xl font-bold mb-2 ${
-            result === 'win' ? 'text-emerald-400' : 'text-red-400'
-          }`}>
+          <h2 className={`text-2xl sm:text-3xl font-bold mb-2 ${result === 'win' ? 'text-emerald-400' : 'text-red-400'}`}>
             {result === 'win' ? 'Trade Won!' : 'Trade Lost'}
           </h2>
-          
-          <p className="text-white text-lg mb-4">
-            {trade?.coin_symbol} - {trade?.trade_type?.toUpperCase()}
-          </p>
-          
-          <p className={`text-4xl font-bold font-mono ${
-            result === 'win' ? 'text-emerald-400' : 'text-red-400'
-          }`}>
+          <p className="text-white text-base sm:text-lg mb-4">{trade?.coin_symbol} - {trade?.trade_type?.toUpperCase()}</p>
+          <p className={`text-3xl sm:text-4xl font-bold font-mono ${result === 'win' ? 'text-emerald-400' : 'text-red-400'}`}>
             {result === 'win' ? '+' : '-'}${Number(trade?.profit_loss || 0).toFixed(2)}
           </p>
-          
           <button
             onClick={onClose}
-            className={`mt-6 px-8 py-3 rounded-xl font-bold text-white ${
-              result === 'win' 
-                ? 'bg-emerald-500 hover:bg-emerald-600' 
-                : 'bg-red-500 hover:bg-red-600'
+            className={`mt-6 px-6 sm:px-8 py-3 rounded-xl font-bold text-white ${
+              result === 'win' ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-red-500 hover:bg-red-600'
             }`}
           >
             Continue Trading
@@ -136,6 +134,7 @@ export default function Trading() {
   const [showMobileMarkets, setShowMobileMarkets] = useState(false);
   const [tradeResultModal, setTradeResultModal] = useState(null);
   const [recentSettledTrades, setRecentSettledTrades] = useState([]);
+  const [dataSource, setDataSource] = useState('backend');
   
   const wsRef = useRef(null);
   const intervalRef = useRef(null);
@@ -153,52 +152,85 @@ export default function Trading() {
     intervalRef.current = setInterval(() => {
       fetchTrades();
       fetchProfile();
-    }, 3000);
+      fetchBackendPrices();
+    }, 5000);
 
     return () => {
-      if (wsRef.current) wsRef.current.close();
+      if (wsRef.current) {
+        wsRef.current.onclose = null;
+        wsRef.current.onerror = null;
+        wsRef.current.close();
+      }
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [navigate]);
 
   const connectBinanceWebSocket = () => {
-    if (wsRef.current) wsRef.current.close();
+    if (wsRef.current) {
+      wsRef.current.onclose = null;
+      wsRef.current.onerror = null;
+      wsRef.current.close();
+    }
 
-    const streams = POPULAR_PAIRS.map(p => `${p.toLowerCase()}@ticker`).join('/');
-    const ws = new WebSocket(`wss://stream.binance.com:9443/stream?streams=${streams}`);
-    wsRef.current = ws;
+    try {
+      const streams = POPULAR_PAIRS.map(p => `${p.toLowerCase()}@ticker`).join('/');
+      const ws = new WebSocket(`wss://stream.binance.com:9443/stream?streams=${streams}`);
+      wsRef.current = ws;
 
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.data) {
-          const ticker = data.data;
-          setBinancePrices(prev => ({
-            ...prev,
-            [ticker.s]: {
-              price: parseFloat(ticker.c),
-              change: parseFloat(ticker.P),
-              high: parseFloat(ticker.h),
-              low: parseFloat(ticker.l),
-              volume: parseFloat(ticker.v),
-              name: ticker.s.replace('USDT', '')
-            }
-          }));
+      ws.onopen = () => {
+        setDataSource('binance');
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.data) {
+            const ticker = data.data;
+            setBinancePrices(prev => ({
+              ...prev,
+              [ticker.s]: {
+                price: parseFloat(ticker.c),
+                change: parseFloat(ticker.P),
+                high: parseFloat(ticker.h),
+                low: parseFloat(ticker.l),
+                volume: parseFloat(ticker.v),
+                name: ticker.s.replace('USDT', '')
+              }
+            }));
+          }
+        } catch (err) {
+          // Silently handle parse errors
         }
-      } catch (err) {
-        console.error('WebSocket error:', err);
-      }
-    };
+      };
 
-    ws.onerror = (error) => console.error('WebSocket error:', error);
+      ws.onerror = () => {
+        setDataSource('backend');
+      };
+      
+      ws.onclose = () => {
+        setDataSource('backend');
+        setTimeout(connectBinanceWebSocket, 10000);
+      };
+    } catch (error) {
+      setDataSource('backend');
+      setTimeout(connectBinanceWebSocket, 10000);
+    }
   };
 
-  const fetchPrices = async () => {
+  const fetchBackendPrices = async () => {
     try {
-      const { data } = await API.get('/trading/prices');
-      setPrices(data || {});
-    } catch (error) {
-      console.error('Error fetching prices:', error);
+      const pricesRes = await API.get('/trading/binance/tickers');
+      if (pricesRes.data && pricesRes.data.length > 0) {
+        const priceObj = {};
+        pricesRes.data.forEach(t => {
+          priceObj[t.symbol] = t;
+        });
+        setPrices(priceObj);
+      } else {
+        setPrices(FALLBACK_PRICES);
+      }
+    } catch (err) {
+      setPrices(FALLBACK_PRICES);
     }
   };
 
@@ -207,44 +239,23 @@ export default function Trading() {
       const { data } = await API.get('/trading/my-trades');
       const newTrades = data || [];
       
-      const settledTrades = trades.filter(t => t.result === 'pending');
+      const pendingTrades = trades.filter(t => t.result === 'pending');
       const currentPending = newTrades.filter(t => t.result === 'pending');
       
-      settledTrades.forEach(oldTrade => {
+      pendingTrades.forEach(oldTrade => {
         const currentTrade = currentPending.find(t => t.id === oldTrade.id);
         if (!currentTrade || currentTrade.result !== 'pending') {
           const settled = currentTrade || oldTrade;
           if (settled.result !== 'pending') {
             setRecentSettledTrades(prev => [...prev.slice(-4), settled]);
             setTradeResultModal(settled);
-            
-            setTimeout(() => {
-              toast.custom((t) => (
-                <motion.div
-                  initial={{ opacity: 0, y: 50 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`p-4 rounded-xl shadow-2xl border ${
-                    settled.result === 'win' 
-                      ? 'bg-emerald-900/90 border-emerald-500' 
-                      : 'bg-red-900/90 border-red-500'
-                  }`}
-                >
-                  <p className={`font-bold ${
-                    settled.result === 'win' ? 'text-emerald-400' : 'text-red-400'
-                  }`}>
-                    {settled.result === 'win' ? '+' : '-'}${Number(settled.profit_loss || 0).toFixed(2)}
-                  </p>
-                  <p className="text-white text-sm">{settled.coin_symbol} {settled.trade_type?.toUpperCase()}</p>
-                </motion.div>
-              ), { duration: 5000 });
-            }, 500);
           }
         }
       });
       
       setTrades(newTrades);
     } catch (error) {
-      console.error('Error fetching trades:', error);
+      // Silently handle errors
     }
   };
 
@@ -252,9 +263,7 @@ export default function Trading() {
     try {
       const profileRes = await API.get('/trading/profile');
       setProfile(profileRes.data || {});
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    }
+    } catch (error) {}
   };
 
   const fetchData = async () => {
@@ -268,7 +277,6 @@ export default function Trading() {
       setTrades(tradesRes.data || []);
       setPrices(pricesRes.data || {});
     } catch (error) {
-      console.error('Error fetching data:', error);
       if (error.response?.status === 401) {
         localStorage.removeItem('token');
         navigate('/login');
@@ -287,19 +295,21 @@ export default function Trading() {
         amount: tradeAmount,
         duration: 60
       });
-      toast.success(res.data.message || 'Trade placed successfully!');
+      toast.success(res.data.message || 'Trade placed!');
       fetchData();
     } catch (error) {
       toast.error(error.response?.data?.error || 'Trade failed');
     }
   };
 
-  const displayPrices = { ...prices, ...binancePrices };
+  const displayPrices = dataSource === 'binance' && Object.keys(binancePrices).length > 0 
+    ? binancePrices 
+    : prices;
   const selectedPrice = displayPrices[selectedSymbol] || { price: 0, change: 0, name: selectedSymbol };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center min-h-[60vh]">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-violet-500"></div>
       </div>
     );
@@ -313,8 +323,8 @@ export default function Trading() {
     <div className="w-full min-h-screen">
       <Toaster position="top-center" />
       
-      {/* Live Market Ticker */}
-      <div className="-mx-6 lg:-mx-8 mb-6">
+      {/* Mobile Market Ticker */}
+      <div className="w-full">
         <MarketTicker 
           marketData={displayPrices} 
           onSelectSymbol={setSelectedSymbol}
@@ -322,240 +332,143 @@ export default function Trading() {
         />
       </div>
 
-      {/* Header & Stats */}
-      <div className="w-full mb-6">
-        <div className="flex justify-between items-center mb-6">
+      {/* Header - Mobile Responsive */}
+      <div className="px-3 sm:px-4 lg:px-6 py-4">
+        <div className="flex flex-row items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-white">Trading</h1>
-            <p className="text-slate-400 text-sm lg:text-base">Place your trades and win up to 85%</p>
+            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">Trading</h1>
+            <p className="text-slate-400 text-xs sm:text-sm">Win up to 85%</p>
           </div>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 w-full">
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-white/10 rounded-2xl p-4 lg:p-6 backdrop-blur-xl"
+          <button
+            onClick={fetchBackendPrices}
+            className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-white/5 rounded-lg hover:bg-white/10 text-slate-400 text-xs sm:text-sm"
           >
-            <p className="text-slate-400 text-xs lg:text-sm mb-1">Trading Balance</p>
-            <p className="text-xl lg:text-3xl font-bold text-white">${Number(profile.trading_balance || 0).toFixed(2)}</p>
-          </motion.div>
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="bg-gradient-to-br from-amber-900/30 to-amber-800/30 border border-amber-500/20 rounded-2xl p-4 lg:p-6 backdrop-blur-xl"
-          >
-            <p className="text-slate-400 text-xs lg:text-sm mb-1">Pending Trades</p>
-            <p className="text-xl lg:text-3xl font-bold text-amber-400">{pendingTrades.length}</p>
-          </motion.div>
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="bg-gradient-to-br from-emerald-900/30 to-emerald-800/30 border border-emerald-500/20 rounded-2xl p-4 lg:p-6 backdrop-blur-xl"
-          >
-            <p className="text-slate-400 text-xs lg:text-sm mb-1">Won Trades</p>
-            <p className="text-xl lg:text-3xl font-bold text-emerald-400">{wonTrades.length}</p>
-          </motion.div>
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="bg-gradient-to-br from-red-900/30 to-red-800/30 border border-red-500/20 rounded-2xl p-4 lg:p-6 backdrop-blur-xl"
-          >
-            <p className="text-slate-400 text-xs lg:text-sm mb-1">Lost Trades</p>
-            <p className="text-xl lg:text-3xl font-bold text-red-400">{lostTrades.length}</p>
-          </motion.div>
-        </div>
-      </div>
-
-      {/* Main Trading Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
-        
-        {/* LEFT: Market List */}
-        <div className="hidden lg:block lg:col-span-3 lg:h-[calc(100vh-320px)] overflow-hidden">
-          <MarketList 
-            selectedSymbol={selectedSymbol} 
-            onSelectSymbol={setSelectedSymbol} 
-          />
-        </div>
-
-        {/* Mobile: Market List Button */}
-        <div className="lg:hidden col-span-1">
-          <button 
-            onClick={() => setShowMobileMarkets(true)}
-            className="w-full bg-gradient-to-r from-slate-800/80 to-slate-900/80 border border-white/10 rounded-2xl p-4 flex items-center justify-between backdrop-blur-xl"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold">
-                {selectedSymbol.slice(0, 2)}
-              </div>
-              <div className="text-left">
-                <p className="text-white font-bold">{selectedSymbol}</p>
-                <p className="text-slate-400 text-sm">${formatPrice(selectedPrice?.price || 0)}</p>
-              </div>
-            </div>
-            <span className="text-violet-400 font-medium">Change →</span>
+            <HiRefresh className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden xs:inline">Refresh</span>
           </button>
         </div>
 
-        {/* Mobile Markets Modal */}
-        <AnimatePresence>
-          {showMobileMarkets && (
-            <div className="fixed inset-0 z-50 lg:hidden">
-              <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowMobileMarkets(false)} />
-              <motion.div
-                initial={{ y: '100%' }}
-                animate={{ y: 0 }}
-                exit={{ y: '100%' }}
-                className="absolute bottom-0 left-0 right-0 bg-slate-900 rounded-t-3xl max-h-[80vh] overflow-y-auto"
-              >
-                <div className="p-4 border-b border-white/10 flex justify-between items-center sticky top-0 bg-slate-900/95 backdrop-blur-xl z-10">
-                  <h3 className="text-lg font-bold text-white">Select Market</h3>
-                  <button onClick={() => setShowMobileMarkets(false)} className="p-2 bg-white/10 rounded-full">
-                    <HiX className="w-5 h-5 text-white" />
-                  </button>
-                </div>
-                <div className="p-4 space-y-2">
-                  {Object.entries(displayPrices).map(([symbol, data]) => (
-                    <button
-                      key={symbol}
-                      onClick={() => { setSelectedSymbol(symbol); setShowMobileMarkets(false); }}
-                      className={`w-full p-4 rounded-xl flex justify-between items-center transition-all ${
-                        selectedSymbol === symbol 
-                          ? 'bg-gradient-to-r from-violet-600/30 to-purple-600/30 border border-violet-500/50' 
-                          : 'bg-white/5 border border-transparent'
-                      }`}
-                    >
-                      <div className="text-left">
-                        <p className="text-white font-medium">{symbol}</p>
-                        <p className="text-slate-400 text-sm">{data.name}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-white font-medium">${formatPrice(data.price || 0)}</p>
-                        <p className={`text-sm ${(data.change || 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                          {(data.change || 0) >= 0 ? '+' : ''}{(data.change || 0).toFixed(2)}%
-                        </p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
+        {/* Stats Cards - Grid Responsive */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+          <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-white/10 rounded-lg sm:rounded-xl p-2.5 sm:p-4 backdrop-blur-xl">
+            <p className="text-slate-500 text-[10px] sm:text-xs mb-0.5 sm:mb-1">Balance</p>
+            <p className="text-sm sm:text-lg lg:text-2xl font-bold text-white">${Number(profile.trading_balance || 0).toFixed(2)}</p>
+          </div>
+          <div className="bg-gradient-to-br from-amber-900/30 to-amber-800/30 border border-amber-500/20 rounded-lg sm:rounded-xl p-2.5 sm:p-4 backdrop-blur-xl">
+            <p className="text-slate-500 text-[10px] sm:text-xs mb-0.5 sm:mb-1">P&L</p>
+            <p className={`text-sm sm:text-lg lg:text-2xl font-bold ${(profile.total_profit || 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              {(profile.total_profit || 0) >= 0 ? '+' : ''}${Number(profile.total_profit || 0).toFixed(2)}
+            </p>
+          </div>
+          <div className="bg-gradient-to-br from-emerald-900/30 to-emerald-800/30 border border-emerald-500/20 rounded-lg sm:rounded-xl p-2.5 sm:p-4 backdrop-blur-xl">
+            <p className="text-slate-500 text-[10px] sm:text-xs mb-0.5 sm:mb-1">Wins</p>
+            <p className="text-sm sm:text-lg lg:text-2xl font-bold text-emerald-400">{wonTrades.length}</p>
+          </div>
+          <div className="bg-gradient-to-br from-red-900/30 to-red-800/30 border border-red-500/20 rounded-lg sm:rounded-xl p-2.5 sm:p-4 backdrop-blur-xl">
+            <p className="text-slate-500 text-[10px] sm:text-xs mb-0.5 sm:mb-1">Losses</p>
+            <p className="text-sm sm:text-lg lg:text-2xl font-bold text-red-400">{lostTrades.length}</p>
+          </div>
+        </div>
+      </div>
 
-        {/* CENTER: Chart + Trade Form */}
-        <div className="col-span-1 lg:col-span-6 space-y-6">
-          {/* Trading Chart */}
-          <TradingChart symbol={selectedSymbol} />
-          
-          {/* Trade Panel */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-white/10 rounded-2xl p-4 lg:p-6"
+      {/* Main Content - Fully Responsive Grid */}
+      <div className="px-3 sm:px-4 lg:px-6 pb-6">
+        {/* Mobile Market Selector */}
+        <div className="lg:hidden mb-4">
+          <button
+            onClick={() => setShowMobileMarkets(true)}
+            className="w-full p-3 bg-white/5 rounded-xl flex items-center justify-between"
           >
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-              <div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-sm">
-                    {selectedSymbol.slice(0, 2)}
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-white">{selectedSymbol}</h3>
-                    <p className="text-slate-400 text-sm">Place your trade</p>
-                  </div>
-                </div>
-              </div>
-              <div className="text-left sm:text-right">
-                <p className="text-slate-400 text-sm mb-1">Current Price</p>
-                <PriceDisplay 
-                  price={selectedPrice?.price || 0} 
-                  prevPrice={selectedPrice?.prevPrice || 0}
-                  size="large"
-                />
-              </div>
+            <div className="flex items-center gap-3">
+              <HiTrendingUp className="w-5 h-5 text-violet-400" />
+              <span className="text-white font-medium">{selectedSymbol.replace('USDT', '/USDT')}</span>
+            </div>
+            <span className="text-slate-400 text-sm">Change</span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
+          {/* Markets List - Desktop Only */}
+          <div className="hidden xl:block xl:col-span-1">
+            <MarketList 
+              onSelectSymbol={setSelectedSymbol}
+              selectedSymbol={selectedSymbol}
+            />
+          </div>
+
+          {/* Chart Section */}
+          <div className="xl:col-span-2">
+            <div className="mb-4">
+              <TradingChart symbol={selectedSymbol} />
             </div>
 
-            {/* Active Trade Timer */}
-            {pendingTrades.length > 0 && (
-              <div className="mb-4">
-                <TradeTimer 
-                  expiresAt={pendingTrades[0].expires_at}
-                  onExpire={() => fetchTrades()}
-                />
+            {/* Trade Form - Fully Responsive */}
+            <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-white/10 rounded-xl sm:rounded-2xl p-3 sm:p-5 backdrop-blur-xl">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <h3 className="text-base sm:text-lg font-bold text-white">Place Trade</h3>
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${dataSource === 'binance' ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+                  <span className="text-[10px] sm:text-xs text-slate-500">{dataSource === 'binance' ? 'Live' : 'Cached'}</span>
+                </div>
               </div>
-            )}
-
-            <form onSubmit={handleTrade} className="space-y-4">
-              <div className="flex gap-4">
-                <motion.button
-                  type="button"
+              
+              {/* UP/DOWN Buttons */}
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-3 sm:mb-4">
+                <button
                   onClick={() => setTradeType('buy')}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className={`flex-1 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 ${
-                    tradeType === 'buy' 
-                      ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/30' 
-                      : 'bg-white/10 text-slate-400 hover:bg-white/20'
+                  className={`p-3 sm:p-4 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base flex items-center justify-center gap-1 sm:gap-2 transition-all ${
+                    tradeType === 'buy'
+                      ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                      : 'bg-white/5 text-slate-400 hover:bg-white/10'
                   }`}
                 >
-                  <HiArrowUp className="w-5 h-5" />
-                  BUY
-                </motion.button>
-                <motion.button
-                  type="button"
+                  <HiArrowUp className="w-4 h-4 sm:w-5 sm:h-5" />
+                  UP
+                </button>
+                <button
                   onClick={() => setTradeType('sell')}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className={`flex-1 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 ${
-                    tradeType === 'sell' 
-                      ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/30' 
-                      : 'bg-white/10 text-slate-400 hover:bg-white/20'
+                  className={`p-3 sm:p-4 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base flex items-center justify-center gap-1 sm:gap-2 transition-all ${
+                    tradeType === 'sell'
+                      ? 'bg-red-500 text-white shadow-lg shadow-red-500/30'
+                      : 'bg-white/5 text-slate-400 hover:bg-white/10'
                   }`}
                 >
-                  <HiArrowDown className="w-5 h-5" />
-                  SELL
-                </motion.button>
+                  <HiArrowDown className="w-4 h-4 sm:w-5 sm:h-5" />
+                  DOWN
+                </button>
               </div>
 
-              <div className="bg-white/5 rounded-xl p-4">
-                <label className="text-slate-400 text-sm block mb-3">Amount (USD)</label>
-                <div className="flex items-center gap-4">
-                  <motion.button 
-                    type="button" 
-                    onClick={() => setTradeAmount(Math.max(1, tradeAmount - 10))}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-colors"
+              {/* Amount Input */}
+              <div className="mb-3 sm:mb-4">
+                <label className="text-slate-400 text-xs sm:text-sm mb-1 sm:mb-2 block">Amount (USD)</label>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setTradeAmount(Math.max(10, tradeAmount - 10))}
+                    className="p-2 sm:p-3 bg-white/5 rounded-lg sm:rounded-xl hover:bg-white/10"
                   >
-                    <HiMinus className="w-5 h-5 text-white" />
-                  </motion.button>
+                    <HiMinus className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
+                  </button>
                   <input
                     type="number"
                     value={tradeAmount}
-                    onChange={(e) => setTradeAmount(Number(e.target.value))}
-                    className="flex-1 bg-transparent text-3xl lg:text-4xl font-bold text-white text-center outline-none"
+                    onChange={(e) => setTradeAmount(Math.max(10, Number(e.target.value)))}
+                    className="flex-1 bg-white/10 border border-white/10 rounded-lg sm:rounded-xl py-2 sm:py-3 px-3 sm:px-4 text-center text-lg sm:text-xl font-bold text-white outline-none focus:border-violet-500"
                   />
-                  <motion.button 
-                    type="button" 
+                  <button
                     onClick={() => setTradeAmount(tradeAmount + 10)}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-colors"
+                    className="p-2 sm:p-3 bg-white/5 rounded-lg sm:rounded-xl hover:bg-white/10"
                   >
-                    <HiPlus className="w-5 h-5 text-white" />
-                  </motion.button>
+                    <HiPlus className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
+                  </button>
                 </div>
-                
                 {/* Quick Amount Buttons */}
-                <div className="flex gap-2 mt-4">
-                  {[10, 50, 100, 500].map(amt => (
+                <div className="grid grid-cols-4 gap-1 sm:gap-2 mt-2">
+                  {[10, 50, 100, 200].map(amt => (
                     <button
                       key={amt}
-                      type="button"
                       onClick={() => setTradeAmount(amt)}
-                      className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-                        tradeAmount === amt
-                          ? 'bg-violet-600 text-white'
-                          : 'bg-white/10 text-slate-400 hover:bg-white/20'
+                      className={`py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                        tradeAmount === amt ? 'bg-violet-600 text-white' : 'bg-white/10 text-slate-400'
                       }`}
                     >
                       ${amt}
@@ -564,114 +477,125 @@ export default function Trading() {
                 </div>
               </div>
 
-              <div className="flex justify-between text-sm text-slate-400">
-                <span>Available: ${Number(profile.trading_balance || 0).toFixed(2)}</span>
-                <span>Payout: 85%</span>
-              </div>
-
-              <motion.button
-                type="submit"
-                disabled={tradeAmount > Number(profile.trading_balance)}
-                whileHover={{ scale: tradeAmount <= Number(profile.trading_balance) ? 1.02 : 1 }}
-                whileTap={{ scale: tradeAmount <= Number(profile.trading_balance) ? 0.98 : 1 }}
-                className={`w-full py-4 rounded-xl font-bold text-lg transition-all ${
-                  tradeAmount > Number(profile.trading_balance)
-                    ? 'bg-slate-600 text-slate-400 cursor-not-allowed'
-                    : tradeType === 'buy'
-                    ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50'
-                    : 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/30 hover:shadow-red-500/50'
-                }`}
-              >
-                {tradeAmount > Number(profile.trading_balance) 
-                  ? 'Insufficient Balance' 
-                  : `${tradeType.toUpperCase()} ${selectedSymbol.replace('USDT', '')} - $${tradeAmount}`
-                }
-              </motion.button>
-            </form>
-          </motion.div>
-        </div>
-
-        {/* RIGHT: Recent Trades */}
-        <div className="col-span-1 lg:col-span-3">
-          <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-white/10 rounded-2xl p-4 lg:p-6 h-full lg:max-h-[calc(100vh-320px)] flex flex-col">
-            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <HiTrendingUp className="w-5 h-5 text-violet-400" />
-              Recent Trades
-              <span className="ml-auto bg-violet-600 text-white text-xs px-2 py-0.5 rounded-full">
-                {trades.length}
-              </span>
-            </h3>
-            <div className="space-y-3 overflow-y-auto flex-1">
-              {trades.slice(0, 10).map((trade, i) => (
-                <motion.div
-                  key={trade.id || i}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                  className="p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-colors"
+              {/* Submit Button */}
+              <form onSubmit={handleTrade}>
+                <motion.button
+                  type="submit"
+                  disabled={pendingTrades.length >= 5}
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                  className={`w-full py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-sm sm:text-base flex items-center justify-center gap-2 disabled:opacity-50 ${
+                    tradeType === 'buy'
+                      ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-500/30'
+                      : 'bg-gradient-to-r from-red-500 to-red-600 shadow-lg shadow-red-500/30'
+                  }`}
                 >
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                        trade.trade_type === 'buy' ? 'bg-emerald-500/20' : 'bg-red-500/20'
-                      }`}>
-                        {trade.trade_type === 'buy' ? (
-                          <HiArrowUp className={`w-4 h-4 ${trade.result === 'win' ? 'text-emerald-400' : 'text-white'}`} />
-                        ) : (
-                          <HiArrowDown className={`w-4 h-4 ${trade.result === 'loss' ? 'text-red-400' : 'text-white'}`} />
-                        )}
+                  {tradeType === 'buy' ? <HiArrowUp className="w-5 h-5" /> : <HiArrowDown className="w-5 h-5" />}
+                  {tradeType === 'buy' ? 'UP' : 'DOWN'} - ${tradeAmount}
+                </motion.button>
+              </form>
+
+              {pendingTrades.length >= 5 && (
+                <p className="text-amber-400 text-xs sm:text-sm text-center mt-2">Max 5 active trades</p>
+              )}
+            </div>
+          </div>
+
+          {/* Trades Section */}
+          <div className="xl:col-span-1">
+            {/* Active Trades */}
+            <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-white/10 rounded-xl sm:rounded-2xl p-3 sm:p-4 backdrop-blur-xl mb-4">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <h3 className="text-sm sm:text-base font-bold text-white">Active</h3>
+                <span className="px-2 py-0.5 sm:py-1 bg-amber-500/20 text-amber-400 text-xs font-medium rounded-full">
+                  {pendingTrades.length}
+                </span>
+              </div>
+              
+              {pendingTrades.length > 0 ? (
+                <div className="space-y-2 sm:space-y-3">
+                  {pendingTrades.slice(0, 3).map(trade => (
+                    <div key={trade.id} className="bg-white/5 rounded-lg sm:rounded-xl p-2.5 sm:p-3">
+                      <div className="flex items-center justify-between mb-1 sm:mb-2">
+                        <span className="text-white text-xs sm:text-sm font-medium">{trade.coin_symbol}</span>
+                        <span className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium ${
+                          trade.trade_type === 'buy' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'
+                        }`}>
+                          {trade.trade_type?.toUpperCase()}
+                        </span>
                       </div>
-                      <div>
-                        <p className="text-white font-medium text-sm">{trade.coin_symbol}</p>
-                        <p className="text-slate-400 text-xs">{trade.trade_type?.toUpperCase()} ${trade.amount}</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-400 text-[10px] sm:text-xs">${Number(trade.amount).toFixed(0)}</span>
+                        <TradeTimer expiresAt={trade.expires_at} />
                       </div>
                     </div>
-                    {trade.result === 'pending' ? (
-                      <div className="text-right">
-                        <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
-                        <p className="text-amber-400 text-xs mt-1">Pending</p>
-                      </div>
-                    ) : (
-                      <p className={`font-bold ${
-                        trade.result === 'win' ? 'text-emerald-400' : 
-                        trade.result === 'loss' ? 'text-red-400' : 'text-amber-400'
-                      }`}>
-                        {trade.result === 'win' ? `+$${Number(trade.profit_loss || 0).toFixed(2)}` : 
-                         trade.result === 'loss' ? `-$${Number(trade.amount || 0).toFixed(2)}` : 
-                         'Pending'}
-                      </p>
-                    )}
-                  </div>
-                  
-                  {trade.result === 'pending' && trade.expires_at && (
-                    <div className="mt-2">
-                      <TradeTimer 
-                        expiresAt={trade.expires_at}
-                        onExpire={() => fetchTrades()}
-                        label="Expires in"
-                      />
-                    </div>
-                  )}
-                </motion.div>
-              ))}
-              {trades.length === 0 && (
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">
-                    <HiTrendingUp className="w-8 h-8 text-slate-500" />
-                  </div>
-                  <p className="text-slate-500">No trades yet</p>
-                  <p className="text-slate-600 text-sm mt-1">Place your first trade above</p>
+                  ))}
                 </div>
+              ) : (
+                <p className="text-slate-500 text-xs sm:text-sm text-center py-4">No active trades</p>
+              )}
+            </div>
+
+            {/* Recent Results */}
+            <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-white/10 rounded-xl sm:rounded-2xl p-3 sm:p-4 backdrop-blur-xl">
+              <h3 className="text-sm sm:text-base font-bold text-white mb-3 sm:mb-4">Recent</h3>
+              {trades.filter(t => t.result !== 'pending').slice(0, 5).map(trade => (
+                <div key={trade.id} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
+                  <div>
+                    <p className="text-white text-xs sm:text-sm">{trade.coin_symbol}</p>
+                    <p className="text-slate-500 text-[10px] sm:text-xs">{trade.result === 'win' ? 'Won' : 'Lost'}</p>
+                  </div>
+                  <span className={`font-bold text-xs sm:text-sm ${trade.result === 'win' ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {trade.result === 'win' ? '+' : '-'}${Number(trade.profit_loss || 0).toFixed(0)}
+                  </span>
+                </div>
+              ))}
+              {trades.filter(t => t.result !== 'pending').length === 0 && (
+                <p className="text-slate-500 text-xs sm:text-sm text-center py-4">No completed trades</p>
               )}
             </div>
           </div>
         </div>
       </div>
 
+      {/* Mobile Markets Modal */}
+      <AnimatePresence>
+        {showMobileMarkets && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 lg:hidden"
+          >
+            <div className="absolute inset-0 bg-black/70" onClick={() => setShowMobileMarkets(false)} />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              className="absolute bottom-0 left-0 right-0 max-h-[80vh] bg-slate-900 rounded-t-3xl p-4 overflow-y-auto"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-white">Select Market</h3>
+                <button onClick={() => setShowMobileMarkets(false)} className="p-2">
+                  <HiX className="w-6 h-6 text-white" />
+                </button>
+              </div>
+              <MarketList 
+                onSelectSymbol={(sym) => {
+                  setSelectedSymbol(sym);
+                  setShowMobileMarkets(false);
+                }}
+                selectedSymbol={selectedSymbol}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Trade Result Modal */}
       <AnimatePresence>
         {tradeResultModal && (
-          <TradeResultModal 
+          <TradeResultModal
             result={tradeResultModal.result}
             trade={tradeResultModal}
             onClose={() => setTradeResultModal(null)}

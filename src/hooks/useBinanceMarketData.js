@@ -42,8 +42,7 @@ export function useBinanceMarketData() {
       setLoading(false);
       setError(null);
     } catch (err) {
-      console.error('Failed to fetch initial data:', err);
-      setError(err.message);
+      console.log('Failed to fetch initial data');
       setLoading(false);
     }
   }, []);
@@ -52,51 +51,52 @@ export function useBinanceMarketData() {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
     setConnectionStatus('connecting');
-    wsRef.current = new WebSocket(BINANCE_WS_URL);
+    
+    try {
+      wsRef.current = new WebSocket(BINANCE_WS_URL);
 
-    wsRef.current.onopen = () => {
-      setConnectionStatus('connected');
-      console.log('Binance WebSocket connected');
-    };
+      wsRef.current.onopen = () => {
+        setConnectionStatus('connected');
+      };
 
-    wsRef.current.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (!Array.isArray(data)) return;
+      wsRef.current.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (!Array.isArray(data)) return;
 
-        setMarketData(prev => {
-          const updated = { ...prev };
-          data.forEach(ticker => {
-            if (POPULAR_PAIRS.includes(ticker.symbol)) {
-              updated[ticker.symbol] = {
-                symbol: ticker.symbol,
-                price: parseFloat(ticker.c),
-                change: parseFloat(ticker.P),
-                high: parseFloat(ticker.h),
-                low: parseFloat(ticker.l),
-                volume: parseFloat(ticker.v),
-                prevPrice: updated[ticker.symbol]?.price || parseFloat(ticker.c)
-              };
-            }
+          setMarketData(prev => {
+            const updated = { ...prev };
+            data.forEach(ticker => {
+              if (POPULAR_PAIRS.includes(ticker.symbol)) {
+                updated[ticker.symbol] = {
+                  symbol: ticker.symbol,
+                  price: parseFloat(ticker.c),
+                  change: parseFloat(ticker.P),
+                  high: parseFloat(ticker.h),
+                  low: parseFloat(ticker.l),
+                  volume: parseFloat(ticker.v),
+                  prevPrice: updated[ticker.symbol]?.price || parseFloat(ticker.c)
+                };
+              }
+            });
+            return updated;
           });
-          return updated;
-        });
-      } catch (err) {
-        console.error('WebSocket message error:', err);
-      }
-    };
+        } catch (err) {}
+      };
 
-    wsRef.current.onerror = (err) => {
-      console.error('WebSocket error:', err);
-      setError('Connection error');
-    };
+      wsRef.current.onerror = () => {
+        setConnectionStatus('error');
+      };
 
-    wsRef.current.onclose = () => {
-      setConnectionStatus('disconnected');
-      reconnectTimeoutRef.current = setTimeout(() => {
-        connect();
-      }, 3000);
-    };
+      wsRef.current.onclose = () => {
+        setConnectionStatus('disconnected');
+        reconnectTimeoutRef.current = setTimeout(() => {
+          connect();
+        }, 5000);
+      };
+    } catch (err) {
+      setConnectionStatus('error');
+    }
   }, []);
 
   useEffect(() => {
@@ -105,6 +105,8 @@ export function useBinanceMarketData() {
 
     return () => {
       if (wsRef.current) {
+        wsRef.current.onclose = null;
+        wsRef.current.onerror = null;
         wsRef.current.close();
       }
       if (reconnectTimeoutRef.current) {
@@ -152,14 +154,22 @@ export function useCryptoPrice(symbol) {
     wsRef.current = ws;
 
     ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      setPrevPrice(price);
-      setPrice(parseFloat(data.c));
-      setChange(parseFloat(data.P));
+      try {
+        const data = JSON.parse(event.data);
+        setPrevPrice(price);
+        setPrice(parseFloat(data.c));
+        setChange(parseFloat(data.P));
+      } catch (err) {}
     };
 
+    ws.onerror = () => {};
+
     return () => {
-      ws.close();
+      if (wsRef.current) {
+        wsRef.current.onclose = null;
+        wsRef.current.onerror = null;
+        wsRef.current.close();
+      }
     };
   }, [symbol]);
 

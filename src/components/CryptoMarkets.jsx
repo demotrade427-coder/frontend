@@ -75,39 +75,39 @@ function CryptoCard({ symbol, data, isSelected, onClick, priceHistory }) {
       onClick={onClick}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      className={`w-full p-3 lg:p-4 rounded-xl flex items-center justify-between gap-2 lg:gap-4 transition-all ${
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.99 }}
+      className={`w-full p-2.5 sm:p-3 lg:p-4 rounded-lg sm:rounded-xl flex items-center justify-between gap-2 sm:gap-3 lg:gap-4 transition-all ${
         isSelected 
           ? 'bg-gradient-to-r from-violet-600/30 to-purple-600/30 border border-violet-500/50' 
           : 'bg-slate-800/50 border border-white/5 hover:bg-slate-700/50'
       }`}
     >
-      <div className="flex items-center gap-2 lg:gap-3 min-w-0">
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
         <div 
-          className="w-8 h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center text-white font-bold text-xs lg:text-sm flex-shrink-0"
+          className="w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center text-white font-bold text-[10px] sm:text-xs lg:text-sm flex-shrink-0"
           style={{ backgroundColor: color }}
         >
           {icon}
         </div>
         <div className="text-left min-w-0">
-          <p className="text-white font-semibold text-sm lg:text-base truncate">{symbol.replace('USDT', '')}</p>
-          <p className="text-slate-400 text-xs truncate">{data?.name || symbol}</p>
+          <p className="text-white font-semibold text-xs sm:text-sm lg:text-base truncate">{symbol.replace('USDT', '')}</p>
+          <p className="text-slate-400 text-[10px] sm:text-xs hidden lg:block truncate">{data?.name || symbol}</p>
         </div>
       </div>
       
-      <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
-        <div className="hidden sm:block">
+      <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+        <div className="hidden md:block">
           <MiniSparkline data={priceHistory} isPositive={isPositive} color={color} />
         </div>
         <div className="text-right min-w-0">
-          <p className="text-white font-mono font-semibold text-sm lg:text-base truncate">
+          <p className="text-white font-mono font-semibold text-xs sm:text-sm lg:text-base truncate">
             ${Number(data?.price || 0).toLocaleString('en-US', { 
               minimumFractionDigits: 2, 
               maximumFractionDigits: (data?.price || 0) < 1 ? 6 : 2 
             })}
           </p>
-          <p className={`text-xs font-medium truncate ${
+          <p className={`text-[10px] sm:text-xs font-medium truncate ${
             isPositive ? 'text-emerald-400' : 'text-red-400'
           }`}>
             {isPositive ? '+' : ''}{(data?.changePercent || 0).toFixed(2)}%
@@ -146,26 +146,26 @@ export default function CryptoMarkets({ prices, onSelectSymbol, selectedSymbol }
   });
 
   return (
-    <div className="bg-slate-800/50 border border-white/10 rounded-2xl overflow-hidden">
+    <div className="bg-slate-800/50 border border-white/10 rounded-lg sm:rounded-xl lg:rounded-2xl overflow-hidden">
       {/* Header */}
-      <div className="p-4 lg:p-5 border-b border-white/10">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+      <div className="p-3 sm:p-4 lg:p-5 border-b border-white/10">
+        <div className="flex items-center justify-between mb-2 sm:mb-3">
+          <h3 className="text-sm sm:text-base lg:text-lg font-bold text-white flex items-center gap-1.5 sm:gap-2">
+            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-400 rounded-full animate-pulse"></span>
             Live Markets
           </h3>
-          <button className="text-violet-400 hover:text-violet-300 text-sm flex items-center gap-1">
-            View All <HiArrowRight className="w-4 h-4" />
+          <button className="text-violet-400 hover:text-violet-300 text-xs sm:text-sm flex items-center gap-1">
+            View All <HiArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
           </button>
         </div>
         
         {/* Filters */}
-        <div className="flex gap-2">
+        <div className="flex gap-1 sm:gap-2">
           {['all', 'gainers', 'losers'].map(f => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-medium transition-all ${
                 filter === f 
                   ? f === 'gainers' ? 'bg-emerald-600 text-white' :
                     f === 'losers' ? 'bg-red-600 text-white' :
@@ -180,7 +180,7 @@ export default function CryptoMarkets({ prices, onSelectSymbol, selectedSymbol }
       </div>
       
       {/* Crypto List */}
-      <div className="p-3 lg:p-4 space-y-2 max-h-[400px] lg:max-h-[500px] overflow-y-auto">
+      <div className="p-2 sm:p-3 lg:p-4 space-y-1.5 sm:space-y-2 max-h-[350px] sm:max-h-[400px] lg:max-h-[500px] overflow-y-auto">
         {filteredPrices.map(([symbol, data]) => (
           <CryptoCard
             key={symbol}

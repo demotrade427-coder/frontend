@@ -6,6 +6,14 @@ export default {
   ],
   theme: {
     extend: {
+      screens: {
+        'xs': '480px',
+        'sm': '640px',
+        'md': '768px',
+        'lg': '1024px',
+        'xl': '1280px',
+        '2xl': '1536px',
+      },
       colors: {
         primary: {
           50: '#f0f9ff',
@@ -73,6 +81,15 @@ export default {
         'premium-gradient': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         'dark-gradient': 'linear-gradient(180deg, #0f172a 0%, #020617 100%)',
         'card-gradient': 'linear-gradient(145deg, #1a1a1a 0%, #121212 100%)',
+      },
+      spacing: {
+        '18': '4.5rem',
+        '88': '22rem',
+      },
+      borderRadius: {
+        'xl': '1rem',
+        '2xl': '1.5rem',
+        '3xl': '2rem',
       },
     },
   },

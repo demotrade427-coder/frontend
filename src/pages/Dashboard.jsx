@@ -116,24 +116,24 @@ function Dashboard() {
   ];
 
   return (
-    <div className="w-full">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 lg:mb-8">
+    <div className="w-full max-w-7xl mx-auto">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6 lg:mb-8">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-white">Dashboard</h1>
-          <p className="text-gray-400 text-sm lg:text-base">Welcome back! Here's your trading overview.</p>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">Dashboard</h1>
+          <p className="text-slate-400 text-xs sm:text-sm lg:text-base">Welcome back! Here's your trading overview.</p>
         </div>
         <button 
           onClick={fetchData} 
-          className="p-3 bg-slate-800/50 border border-white/10 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 w-full sm:w-auto justify-center flex"
+          className="p-2 sm:p-3 bg-slate-800/50 border border-white/10 rounded-lg sm:rounded-xl text-slate-400 hover:text-white hover:bg-white/5 w-full sm:w-auto justify-center flex"
         >
-          <HiRefresh className="w-5 h-5" />
+          <HiRefresh className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
       </div>
 
       {/* Premium Crypto Markets Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 lg:mb-8">
-        {/* Left: Crypto Markets List */}
-        <div className="lg:col-span-1">
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 sm:gap-6 mb-4 sm:mb-6 lg:mb-8">
+        {/* Left: Crypto Markets List - Hidden on mobile */}
+        <div className="hidden xl:block xl:col-span-1">
           <CryptoMarkets 
             prices={prices} 
             selectedSymbol={selectedCrypto}
@@ -142,25 +142,25 @@ function Dashboard() {
         </div>
 
         {/* Right: Stats + Chart */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+        <div className="xl:col-span-3 space-y-4 sm:space-y-6">
+          {/* Stats Grid - Fully Responsive */}
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
             {stats.map((stat, index) => (
               <motion.div
                 key={stat.label}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="relative overflow-hidden rounded-xl lg:rounded-2xl bg-slate-800/50 border border-white/10 p-3 lg:p-4"
+                className="relative overflow-hidden rounded-lg sm:rounded-xl lg:rounded-2xl bg-slate-800/50 border border-white/10 p-3 sm:p-4 lg:p-5"
               >
-                <div className={`absolute top-0 right-0 w-12 lg:w-16 h-12 lg:h-16 bg-gradient-to-br ${stat.color} opacity-20 rounded-full -translate-y-1/2 translate-x-1/2`} />
+                <div className={`absolute top-0 right-0 w-10 sm:w-12 lg:w-16 h-10 sm:h-12 lg:h-16 bg-gradient-to-br ${stat.color} opacity-20 rounded-full -translate-y-1/2 translate-x-1/2`} />
                 <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-slate-400 text-xs mb-1">{stat.label}</p>
-                    <p className={`text-lg lg:text-xl font-bold ${stat.textColor}`}>{stat.value}{stat.suffix || ''}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-slate-400 text-[10px] sm:text-xs mb-0.5 sm:mb-1 truncate">{stat.label}</p>
+                    <p className={`text-base sm:text-lg lg:text-xl font-bold ${stat.textColor} truncate`}>{stat.value}{stat.suffix || ''}</p>
                   </div>
-                  <div className={`p-1.5 lg:p-2 rounded-lg bg-gradient-to-br ${stat.color} opacity-20`}>
-                    <stat.icon className={`w-3 lg:w-4 h-3 lg:h-4 ${stat.textColor}`} />
+                  <div className={`p-1 sm:p-1.5 lg:p-2 rounded-lg bg-gradient-to-br ${stat.color} opacity-20 flex-shrink-0`}>
+                    <stat.icon className={`w-3 sm:w-4 h-3 sm:h-4 ${stat.textColor}`} />
                   </div>
                 </div>
               </motion.div>
@@ -171,35 +171,37 @@ function Dashboard() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-slate-800/50 border border-white/10 rounded-2xl p-4 lg:p-6"
+            className="bg-slate-800/50 border border-white/10 rounded-lg sm:rounded-xl lg:rounded-2xl p-3 sm:p-4 lg:p-6"
           >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg lg:text-xl font-semibold text-white">Profit/Loss History</h3>
-              <Link to="/dashboard/trading" className="text-violet-400 hover:text-violet-300 text-sm flex items-center gap-1">
-                Start Trading <HiArrowUp className="w-4 h-4 rotate-45" />
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
+              <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-white">Profit/Loss History</h3>
+              <Link to="/dashboard/trading" className="text-violet-400 hover:text-violet-300 text-xs sm:text-sm flex items-center gap-1">
+                Start Trading <HiArrowUp className="w-3 h-3 sm:w-4 sm:h-4 rotate-45" />
               </Link>
             </div>
             {chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={200}>
-                <AreaChart data={chartData}>
-                  <defs>
-                    <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                  <XAxis dataKey="trade" stroke="#64748b" fontSize={12} />
-                  <YAxis stroke="#64748b" fontSize={12} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
-                    labelStyle={{ color: '#f8fafc' }}
-                  />
-                  <Area type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorValue)" />
-                </AreaChart>
-              </ResponsiveContainer>
+              <div className="h-40 sm:h-48 lg:h-56">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData}>
+                    <defs>
+                      <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                    <XAxis dataKey="trade" stroke="#64748b" fontSize={10} sm:fontSize={12} />
+                    <YAxis stroke="#64748b" fontSize={10} sm:fontSize={12} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
+                      labelStyle={{ color: '#f8fafc' }}
+                    />
+                    <Area type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorValue)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             ) : (
-              <div className="h-40 lg:h-48 flex items-center justify-center text-slate-500">
+              <div className="h-40 sm:h-48 flex items-center justify-center text-slate-500 text-sm">
                 No trade data yet. Start trading to see your profits!
               </div>
             )}
@@ -208,50 +210,50 @@ function Dashboard() {
       </div>
 
       {/* Live Trades Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 lg:mb-8">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6 lg:mb-8">
         {/* Live Trades Feed */}
-        <div className="lg:col-span-2">
+        <div className="xl:col-span-2">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-slate-800/50 border border-white/10 rounded-2xl p-4 lg:p-6 overflow-hidden"
+            className="bg-slate-800/50 border border-white/10 rounded-lg sm:rounded-xl lg:rounded-2xl p-3 sm:p-4 lg:p-6 overflow-hidden"
           >
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
-              <h3 className="text-lg lg:text-xl font-semibold text-white">Recent Trades</h3>
-              <Link to="/dashboard/trading" className="text-violet-400 hover:text-violet-300 text-sm">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
+              <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-white">Recent Trades</h3>
+              <Link to="/dashboard/trading" className="text-violet-400 hover:text-violet-300 text-xs sm:text-sm">
                 View All →
               </Link>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[500px]">
+            <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
+              <table className="w-full min-w-[600px] sm:min-w-[500px]">
                 <thead>
                   <tr className="border-b border-white/10">
-                    <th className="text-left py-2 px-2 lg:px-4 text-gray-400 font-medium text-xs lg:text-sm">Market</th>
-                    <th className="text-left py-2 px-2 lg:px-4 text-gray-400 font-medium text-xs lg:text-sm">Type</th>
-                    <th className="text-left py-2 px-2 lg:px-4 text-gray-400 font-medium text-xs lg:text-sm">Amount</th>
-                    <th className="text-left py-2 px-2 lg:px-4 text-gray-400 font-medium text-xs lg:text-sm">Entry</th>
-                    <th className="text-left py-2 px-2 lg:px-4 text-gray-400 font-medium text-xs lg:text-sm">Result</th>
-                    <th className="text-left py-2 px-2 lg:px-4 text-gray-400 font-medium text-xs lg:text-sm">Date</th>
+                    <th className="text-left py-2 px-2 sm:px-4 text-gray-400 font-medium text-[10px] sm:text-xs lg:text-sm">Market</th>
+                    <th className="text-left py-2 px-2 sm:px-4 text-gray-400 font-medium text-[10px] sm:text-xs lg:text-sm">Type</th>
+                    <th className="text-left py-2 px-2 sm:px-4 text-gray-400 font-medium text-[10px] sm:text-xs lg:text-sm">Amount</th>
+                    <th className="text-left py-2 px-2 sm:px-4 text-gray-400 font-medium text-[10px] sm:text-xs lg:text-sm">Entry</th>
+                    <th className="text-left py-2 px-2 sm:px-4 text-gray-400 font-medium text-[10px] sm:text-xs lg:text-sm">Result</th>
+                    <th className="text-left py-2 px-2 sm:px-4 text-gray-400 font-medium text-[10px] sm:text-xs lg:text-sm">Date</th>
                   </tr>
                 </thead>
                 <tbody>
                   {trades.length > 0 ? (
                     trades.slice(0, 8).map((trade, i) => (
                       <tr key={i} className="border-b border-white/5 hover:bg-white/5">
-                        <td className="py-2 px-2 lg:px-4">
-                          <span className="text-white font-medium text-sm">{trade.coin_symbol || 'XAUUSD'}</span>
+                        <td className="py-2 px-2 sm:px-4">
+                          <span className="text-white font-medium text-xs sm:text-sm">{trade.coin_symbol || 'XAUUSD'}</span>
                         </td>
-                        <td className="py-2 px-2 lg:px-4">
-                          <span className={`px-2 py-0.5 rounded text-xs ${
+                        <td className="py-2 px-2 sm:px-4">
+                          <span className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs ${
                             trade.trade_type === 'buy' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'
                           }`}>
                             {trade.trade_type?.toUpperCase() || 'BUY'}
                           </span>
                         </td>
-                        <td className="py-2 px-2 lg:px-4 text-white text-sm">${Number(trade.amount || 0).toFixed(2)}</td>
-                        <td className="py-2 px-2 lg:px-4 text-slate-300 text-sm">${Number(trade.price || 0).toFixed(2)}</td>
-                        <td className="py-2 px-2 lg:px-4">
-                          <span className={`px-2 py-0.5 lg:py-1 rounded-full text-xs font-medium ${
+                        <td className="py-2 px-2 sm:px-4 text-white text-xs sm:text-sm">${Number(trade.amount || 0).toFixed(2)}</td>
+                        <td className="py-2 px-2 sm:px-4 text-slate-300 text-xs sm:text-sm">${Number(trade.price || 0).toFixed(2)}</td>
+                        <td className="py-2 px-2 sm:px-4">
+                          <span className={`px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium whitespace-nowrap ${
                             trade.result === 'win' ? 'bg-emerald-500/20 text-emerald-400' :
                             trade.result === 'loss' ? 'bg-red-500/20 text-red-400' :
                             'bg-amber-500/20 text-amber-400'
@@ -261,14 +263,14 @@ function Dashboard() {
                              'Pending'}
                           </span>
                         </td>
-                        <td className="py-2 px-2 lg:px-4 text-slate-400 text-xs">
+                        <td className="py-2 px-2 sm:px-4 text-slate-400 text-[10px] sm:text-xs whitespace-nowrap">
                           {trade.created_at ? new Date(trade.created_at).toLocaleDateString() : '-'}
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="6" className="py-8 text-center text-slate-500">
+                      <td colSpan="6" className="py-6 sm:py-8 text-center text-slate-500 text-sm">
                         No trades yet. <Link to="/dashboard/trading" className="text-violet-400">Start trading!</Link>
                       </td>
                     </tr>
@@ -284,21 +286,21 @@ function Dashboard() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-slate-800/50 border border-white/10 rounded-2xl p-4 lg:p-6 h-full"
+            className="bg-slate-800/50 border border-white/10 rounded-lg sm:rounded-xl lg:rounded-2xl p-3 sm:p-4 lg:p-6 h-full"
           >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg lg:text-xl font-semibold text-white">Live Results</h3>
-              <span className="flex items-center gap-1 text-xs text-emerald-400">
-                <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-white">Live Results</h3>
+              <span className="flex items-center gap-1 text-[10px] sm:text-xs text-emerald-400">
+                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-400 rounded-full animate-pulse"></span>
                 LIVE
               </span>
             </div>
-            <div className="space-y-2 max-h-[300px] lg:max-h-[350px] overflow-y-auto">
+            <div className="space-y-2 max-h-[280px] sm:max-h-[300px] lg:max-h-[350px] overflow-y-auto pr-1">
               {liveTrades.length > 0 ? (
                 liveTrades.map((trade, i) => (
                   <div 
                     key={`${trade.id}-${i}`} 
-                    className={`flex items-center justify-between p-3 rounded-xl ${
+                    className={`flex items-center justify-between p-2 sm:p-3 rounded-lg sm:rounded-xl ${
                       trade.result === 'win' 
                         ? 'bg-emerald-500/10 border border-emerald-500/20' 
                         : trade.result === 'loss'
@@ -308,19 +310,19 @@ function Dashboard() {
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       {trade.result === 'win' ? (
-                        <HiTrendingUp className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                        <HiTrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-400 flex-shrink-0" />
                       ) : trade.result === 'loss' ? (
-                        <HiTrendingDown className="w-4 h-4 text-red-400 flex-shrink-0" />
+                        <HiTrendingDown className="w-3 h-3 sm:w-4 sm:h-4 text-red-400 flex-shrink-0" />
                       ) : (
-                        <div className="w-4 h-4 rounded-full bg-amber-400 animate-pulse flex-shrink-0" />
+                        <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-amber-400 animate-pulse flex-shrink-0" />
                       )}
                       <div className="min-w-0">
-                        <p className="text-white text-sm font-medium truncate">{trade.symbol}</p>
-                        <p className="text-slate-400 text-xs">{trade.time}</p>
+                        <p className="text-white text-xs sm:text-sm font-medium truncate">{trade.symbol}</p>
+                        <p className="text-slate-400 text-[10px] sm:text-xs">{trade.time}</p>
                       </div>
                     </div>
-                    <div className="text-right flex-shrink-0">
-                      <p className={`text-sm font-bold ${
+                    <div className="text-right flex-shrink-0 ml-2">
+                      <p className={`text-xs sm:text-sm font-bold ${
                         trade.result === 'win' 
                           ? 'text-emerald-400' 
                           : trade.result === 'loss'
@@ -337,7 +339,7 @@ function Dashboard() {
                   </div>
                 ))
               ) : (
-                <p className="text-slate-500 text-center py-6">No trades yet</p>
+                <p className="text-slate-500 text-center py-4 sm:py-6 text-xs sm:text-sm">No trades yet</p>
               )}
             </div>
           </motion.div>

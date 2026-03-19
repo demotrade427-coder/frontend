@@ -1,38 +1,44 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { useAuth } from './AuthContext';
+import { WS_BASE_URL } from '../config';
 
 const SocketContext = createContext(null);
 
 export function SocketProvider({ children }) {
-  const { user, admin } = useAuth();
   const [socket, setSocket] = useState(null);
   const [connected, setConnected] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const socketRef = useRef(null);
+  const isConnectedRef = useRef(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     const adminToken = localStorage.getItem('adminToken');
     
     if (!token && !adminToken) return;
+    if (isConnectedRef.current) return;
 
-    const socketUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-    
-    const newSocket = io(socketUrl, {
-      auth: {
-        token,
-        adminToken,
-      },
+    const newSocket = io(WS_BASE_URL, {
+      auth: { token, adminToken },
       transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
     });
 
     newSocket.on('connect', () => {
       console.log('Socket connected:', newSocket.id);
       setConnected(true);
+      isConnectedRef.current = true;
     });
 
     newSocket.on('disconnect', () => {
       console.log('Socket disconnected');
+      setConnected(false);
+      isConnectedRef.current = false;
+    });
+
+    newSocket.on('connect_error', () => {
       setConnected(false);
     });
 
@@ -60,31 +66,23 @@ export function SocketProvider({ children }) {
       setNotifications(prev => [{ type: 'loan', data, timestamp: Date.now() }, ...prev.slice(0, 9)]);
     });
 
+    socketRef.current = newSocket;
     setSocket(newSocket);
 
     return () => {
-      newSocket.close();
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+      isConnectedRef.current = false;
     };
-  }, [user, admin]);
+  }, []);
 
-  const clearNotifications = () => {
-    setNotifications([]);
-  };
-
-  const removeNotification = (index) => {
-    setNotifications(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const value = {
-    socket,
-    connected,
-    notifications,
-    clearNotifications,
-    removeNotification,
-  };
+  const clearNotifications = () => setNotifications([]);
+  const removeNotification = (index) => setNotifications(prev => prev.filter((_, i) => i !== index));
 
   return (
-    <SocketContext.Provider value={value}>
+    <SocketContext.Provider value={{ socket, connected, notifications, clearNotifications, removeNotification }}>
       {children}
     </SocketContext.Provider>
   );
@@ -92,9 +90,7 @@ export function SocketProvider({ children }) {
 
 export function useSocket() {
   const context = useContext(SocketContext);
-  if (!context) {
-    throw new Error('useSocket must be used within a SocketProvider');
-  }
+  if (!context) throw new Error('useSocket must be used within a SocketProvider');
   return context;
 }
 

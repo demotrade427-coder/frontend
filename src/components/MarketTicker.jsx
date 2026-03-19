@@ -5,6 +5,24 @@ import { FaBitcoin, FaEthereum } from 'react-icons/fa';
 import { SiBinance, SiCardano, SiPolkadot } from 'react-icons/si';
 import { TbCurrencySolana } from 'react-icons/tb';
 
+const FALLBACK_DATA = {
+  BTCUSDT: { price: 70000, change: 2.5 },
+  ETHUSDT: { price: 2200, change: 1.8 },
+  BNBUSDT: { price: 600, change: -0.5 },
+  SOLUSDT: { price: 150, change: 3.2 },
+  XRPUSDT: { price: 0.52, change: -1.2 },
+  ADAUSDT: { price: 0.45, change: 0.8 },
+  DOGEUSDT: { price: 0.12, change: 5.1 },
+  AVAXUSDT: { price: 35, change: 2.3 },
+  DOTUSDT: { price: 7.5, change: -0.8 },
+  MATICUSDT: { price: 0.85, change: 1.5 },
+  LINKUSDT: { price: 15, change: 0.9 },
+  LTCUSDT: { price: 85, change: -0.3 },
+  UNIUSDT: { price: 10, change: 2.1 },
+  ATOMUSDT: { price: 9, change: 1.2 },
+  XLMUSDT: { price: 0.12, change: 0.7 }
+};
+
 const CRYPTO_ICONS = {
   BTCUSDT: FaBitcoin,
   ETHUSDT: FaEthereum,
@@ -92,30 +110,30 @@ function TickerItem({ symbol, data, isSelected, onClick }) {
       onClick={onClick}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className={`flex-shrink-0 p-3 rounded-xl flex items-center gap-3 transition-all min-w-[180px] ${
+      className={`flex-shrink-0 p-2 sm:p-3 rounded-lg sm:rounded-xl flex items-center gap-2 sm:gap-3 transition-all min-w-[140px] sm:min-w-[180px] ${
         isSelected
           ? 'bg-gradient-to-r from-violet-600/40 to-indigo-600/40 border border-violet-500/50 shadow-lg shadow-violet-500/20'
-          : 'bg-white/5 border border-transparent hover:bg-white/10 hover:border-white/10'
+          : 'bg-white/5 border border-transparent hover:bg-white/10'
       }`}
     >
       <div 
-        className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
+        className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white text-[10px] sm:text-xs font-bold"
         style={{ backgroundColor: color }}
       >
         {symbol.slice(0, 2)}
       </div>
       
       <div className="text-left">
-        <p className="text-white font-semibold text-sm">{symbol.replace('USDT', '')}</p>
+        <p className="text-white font-semibold text-xs sm:text-sm">{symbol.replace('USDT', '')}</p>
         <div className="flex items-center gap-1">
           <PriceBlink price={price} prevPrice={prevPrice} symbol={symbol} />
         </div>
       </div>
       
-      <div className={`ml-auto flex items-center gap-1 text-xs font-medium ${
+      <div className={`ml-auto flex items-center gap-1 text-[10px] sm:text-xs font-medium ${
         isPositive ? 'text-emerald-400' : 'text-red-400'
       }`}>
-        {isPositive ? <HiTrendingUp className="w-3 h-3" /> : <HiTrendingDown className="w-3 h-3" />}
+        {isPositive ? <HiTrendingUp className="w-2 h-2 sm:w-3 sm:h-3" /> : <HiTrendingDown className="w-2 h-2 sm:w-3 sm:h-3" />}
         {isPositive ? '+' : ''}{(data?.change || 0).toFixed(2)}%
       </div>
     </motion.button>
@@ -126,9 +144,11 @@ export default function MarketTicker({ marketData, onSelectSymbol, selectedSymbo
   const [position, setPosition] = useState(0);
   const animationRef = useRef(null);
   
-  const tickers = Object.entries(marketData).map(([symbol, data]) => ({
+  const effectiveData = Object.keys(marketData).length > 0 ? marketData : FALLBACK_DATA;
+  
+  const tickers = Object.entries(effectiveData).map(([symbol, data]) => ({
     symbol,
-    data
+    data: marketData[symbol] || data
   }));
 
   useEffect(() => {
@@ -156,14 +176,30 @@ export default function MarketTicker({ marketData, onSelectSymbol, selectedSymbo
     };
   }, [tickers.length]);
 
-  if (tickers.length === 0) return null;
+  if (tickers.length === 0) {
+  return (
+    <div className="w-full overflow-hidden bg-slate-900/90 border-b border-white/10 py-2 sm:py-3">
+      <div className="flex gap-2 sm:gap-3" style={{ transform: `translateX(${position}px)` }}>
+        {duplicatedTickers.map((item, index) => (
+          <TickerItem
+            key={`${item.symbol}-${index}`}
+            symbol={item.symbol}
+            data={item.data}
+            isSelected={selectedSymbol === item.symbol}
+            onClick={() => onSelectSymbol?.(item.symbol)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+  }
 
   const duplicatedTickers = [...tickers, ...tickers];
 
   return (
-    <div className="w-full overflow-hidden bg-slate-900/80 border-b border-white/10 py-3">
+    <div className="w-full overflow-hidden bg-slate-900/90 border-b border-white/10 py-2 sm:py-3">
       <div 
-        className="flex gap-3"
+        className="flex gap-2 sm:gap-3 px-2 sm:px-0"
         style={{
           transform: `translateX(${position}px)`,
           transition: 'transform 0.05s linear'

@@ -7,17 +7,17 @@ const StatCard = ({ title, value, subtitle, icon: Icon, color }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-white/10 p-6"
+    className="relative overflow-hidden rounded-lg sm:rounded-xl lg:rounded-2xl bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl border border-white/10 p-4 sm:p-5 lg:p-6"
   >
-    <div className={`absolute top-0 right-0 w-24 h-24 ${color} opacity-10 rounded-full -translate-y-1/2 translate-x-1/2`} />
-    <div className="flex items-start justify-between">
-      <div>
-        <p className="text-slate-400 text-sm font-medium mb-1">{title}</p>
-        <p className="text-3xl font-bold text-white">{value}</p>
-        {subtitle && <p className="text-slate-500 text-sm mt-1">{subtitle}</p>}
+    <div className={`absolute top-0 right-0 w-16 sm:w-20 lg:w-24 h-16 sm:h-20 lg:h-24 ${color} opacity-10 rounded-full -translate-y-1/2 translate-x-1/2`} />
+    <div className="flex items-start justify-between gap-2">
+      <div className="min-w-0 flex-1">
+        <p className="text-slate-400 text-xs sm:text-sm font-medium mb-0.5 sm:mb-1 truncate">{title}</p>
+        <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-white truncate">{value}</p>
+        {subtitle && <p className="text-slate-500 text-[10px] sm:text-xs lg:text-sm mt-0.5 sm:mt-1 truncate">{subtitle}</p>}
       </div>
-      <div className={`p-3 rounded-xl ${color} bg-opacity-20`}>
-        <Icon className={`w-6 h-6 ${color.replace('bg-', 'text-')}`} />
+      <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${color} bg-opacity-20 flex-shrink-0`}>
+        <Icon className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 ${color.replace('bg-', 'text-')}`} />
       </div>
     </div>
   </motion.div>
@@ -73,18 +73,18 @@ export default function AdminOverview() {
   const pendingWithdrawals = withdrawals.filter(w => w.status === 'pending');
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white">Dashboard Overview</h1>
-          <p className="text-slate-400 mt-1">Welcome back! Here's what's happening.</p>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">Dashboard Overview</h1>
+          <p className="text-slate-400 mt-1 text-xs sm:text-sm lg:text-base">Welcome back! Here's what's happening.</p>
         </div>
-        <button onClick={fetchData} className="p-3 bg-slate-800/50 border border-white/10 rounded-xl text-slate-400 hover:text-white hover:bg-white/5">
-          <HiRefresh className="w-5 h-5" />
+        <button onClick={fetchData} className="p-2 sm:p-3 bg-slate-800/50 border border-white/10 rounded-lg sm:rounded-xl text-slate-400 hover:text-white hover:bg-white/5 w-full sm:w-auto justify-center flex">
+          <HiRefresh className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
         <StatCard
           title="Total Users"
           value={stats.totalUsers || 0}
@@ -115,24 +115,24 @@ export default function AdminOverview() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-slate-800/50 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Recent Deposits</h3>
-          <div className="space-y-3">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
+        <div className="bg-slate-800/50 backdrop-blur-xl border border-white/10 rounded-lg sm:rounded-xl lg:rounded-2xl p-4 sm:p-5 lg:p-6">
+          <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Recent Deposits</h3>
+          <div className="space-y-2 sm:space-y-3">
             {deposits.map((d, i) => (
-              <div key={i} className="flex items-center justify-between p-3 bg-white/5 rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-emerald-500/20 rounded-lg">
-                    <HiArrowDown className="w-4 h-4 text-emerald-400" />
+              <div key={i} className="flex items-center justify-between p-2.5 sm:p-3 bg-white/5 rounded-lg sm:rounded-xl">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                  <div className="p-1.5 sm:p-2 bg-emerald-500/20 rounded-lg flex-shrink-0">
+                    <HiArrowDown className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-400" />
                   </div>
-                  <div>
-                    <p className="text-white font-medium">{d.first_name || 'User'}</p>
-                    <p className="text-slate-400 text-sm">{formatDate(d.created_at)}</p>
+                  <div className="min-w-0">
+                    <p className="text-white font-medium text-xs sm:text-sm truncate">{d.first_name || 'User'}</p>
+                    <p className="text-slate-400 text-[10px] sm:text-xs hidden sm:block">{formatDate(d.created_at)}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-white font-medium">{formatCurrency(d.amount)}</p>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
+                <div className="text-right flex-shrink-0 ml-2">
+                  <p className="text-white font-medium text-xs sm:text-sm">{formatCurrency(d.amount)}</p>
+                  <span className={`text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap ${
                     d.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' :
                     d.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
                     'bg-amber-500/20 text-amber-400'
@@ -140,27 +140,27 @@ export default function AdminOverview() {
                 </div>
               </div>
             ))}
-            {deposits.length === 0 && <p className="text-slate-500 text-center py-4">No deposits yet</p>}
+            {deposits.length === 0 && <p className="text-slate-500 text-center py-4 sm:py-6 text-xs sm:text-sm">No deposits yet</p>}
           </div>
         </div>
 
-        <div className="bg-slate-800/50 backdrop-blur-xl border border-white/10 rounded-2xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Recent Withdrawals</h3>
-          <div className="space-y-3">
+        <div className="bg-slate-800/50 backdrop-blur-xl border border-white/10 rounded-lg sm:rounded-xl lg:rounded-2xl p-4 sm:p-5 lg:p-6">
+          <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Recent Withdrawals</h3>
+          <div className="space-y-2 sm:space-y-3">
             {withdrawals.map((w, i) => (
-              <div key={i} className="flex items-center justify-between p-3 bg-white/5 rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-amber-500/20 rounded-lg">
-                    <HiArrowUp className="w-4 h-4 text-amber-400" />
+              <div key={i} className="flex items-center justify-between p-2.5 sm:p-3 bg-white/5 rounded-lg sm:rounded-xl">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                  <div className="p-1.5 sm:p-2 bg-amber-500/20 rounded-lg flex-shrink-0">
+                    <HiArrowUp className="w-3 h-3 sm:w-4 sm:h-4 text-amber-400" />
                   </div>
-                  <div>
-                    <p className="text-white font-medium">{w.first_name || 'User'}</p>
-                    <p className="text-slate-400 text-sm">{formatDate(w.created_at)}</p>
+                  <div className="min-w-0">
+                    <p className="text-white font-medium text-xs sm:text-sm truncate">{w.first_name || 'User'}</p>
+                    <p className="text-slate-400 text-[10px] sm:text-xs hidden sm:block">{formatDate(w.created_at)}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-white font-medium">{formatCurrency(w.amount)}</p>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
+                <div className="text-right flex-shrink-0 ml-2">
+                  <p className="text-white font-medium text-xs sm:text-sm">{formatCurrency(w.amount)}</p>
+                  <span className={`text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap ${
                     w.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' :
                     w.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
                     'bg-amber-500/20 text-amber-400'
@@ -168,7 +168,7 @@ export default function AdminOverview() {
                 </div>
               </div>
             ))}
-            {withdrawals.length === 0 && <p className="text-slate-500 text-center py-4">No withdrawals yet</p>}
+            {withdrawals.length === 0 && <p className="text-slate-500 text-center py-4 sm:py-6 text-xs sm:text-sm">No withdrawals yet</p>}
           </div>
         </div>
       </div>
