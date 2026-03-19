@@ -11,6 +11,7 @@ const menuItems = [
   { id: 'dashboard', path: '/dashboard', icon: HiHome, label: 'Dashboard' },
   { id: 'trading', path: '/dashboard/trading', icon: HiTrendingUp, label: 'Trading' },
   { id: 'investments', path: '/dashboard/investments', icon: HiCollection, label: 'Investments' },
+  { id: 'loans', path: '/dashboard/loans', icon: HiCreditCard, label: 'Loans' },
   { id: 'wallet', path: '/dashboard/wallet', icon: HiCreditCard, label: 'Wallet' },
   { id: 'profile', path: '/dashboard/profile', icon: HiUser, label: 'Profile' },
 ];

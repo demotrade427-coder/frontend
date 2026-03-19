@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { HiArrowRight, HiShieldCheck, HiTrendingUp, HiClock, HiUserGroup, HiCurrencyDollar, HiChartBar, HiPlay, HiCheck, HiArrowUp, HiArrowDown, HiStar, HiGlobe, HiLightningBolt, HiBadgeCheck } from 'react-icons/hi';
+import Certifications from '../components/Certifications';
 import API from '../utils/api';
 
 const certLogos = {
@@ -687,6 +688,9 @@ function Home() {
           </div>
         </div>
       </section>
+
+      {/* Certifications Section */}
+      <Certifications />
 
       {/* Testimonials Section */}
       <section className="py-20 bg-black overflow-hidden">

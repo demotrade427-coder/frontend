@@ -15,6 +15,7 @@ import Investments from './pages/Investments';
 import Wallet from './pages/Wallet';
 import Profile from './pages/Profile';
 import Trading from './pages/Trading';
+import Loans from './pages/Loans';
 import AdminOverview from './pages/admin/AdminOverview';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminDeposits from './pages/admin/AdminDeposits';
@@ -23,6 +24,7 @@ import AdminTrades from './pages/admin/AdminTrades';
 import AdminMarkets from './pages/admin/AdminMarkets';
 import AdminBankAccounts from './pages/admin/AdminBankAccounts';
 import AdminTickets from './pages/admin/AdminTickets';
+import AdminLoans from './pages/admin/AdminLoans';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 
@@ -52,6 +54,7 @@ function App() {
         <Route path="investments" element={<Investments />} />
         <Route path="wallet" element={<Wallet />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="loans" element={<Loans />} />
       </Route>
 
       {/* Legacy route redirect */}
@@ -71,6 +74,7 @@ function App() {
         <Route path="markets" element={<AdminMarkets />} />
         <Route path="bank-accounts" element={<AdminBankAccounts />} />
         <Route path="tickets" element={<AdminTickets />} />
+        <Route path="loans" element={<AdminLoans />} />
       </Route>
     </Routes>
   );
