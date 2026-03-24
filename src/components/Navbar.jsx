@@ -50,6 +50,8 @@ function Navbar() {
     { name: 'About', path: '/about' },
     { name: 'Services', path: '/services' },
     { name: 'Plans', path: '/plans' },
+    { name: 'Certifications', path: '/certifications' },
+    { name: 'Support', path: '/support' },
     { name: 'FAQ', path: '/faq' },
     { name: 'Contact', path: '/contact' },
   ];

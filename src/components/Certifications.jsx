@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
-const certifications = [
+export const certifications = [
   {
     id: 1,
     name: 'SSL Secure',
@@ -154,6 +155,24 @@ export default function Certifications() {
             <CertificationCard key={cert.id} cert={cert} index={index} />
           ))}
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.3 }}
+          className="mt-10 flex flex-col items-center gap-4 text-center"
+        >
+          <p className="max-w-2xl text-sm text-gray-500 sm:text-base">
+            Review our standards, security commitments, and trust controls in more detail.
+          </p>
+          <Link
+            to="/certifications"
+            className="rounded-xl border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+          >
+            Explore Certifications
+          </Link>
+        </motion.div>
 
         {/* Trust Badges */}
         <motion.div
