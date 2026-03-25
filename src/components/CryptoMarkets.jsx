@@ -66,7 +66,8 @@ function MiniSparkline({ data, isPositive, color }) {
 }
 
 function CryptoCard({ symbol, data, isSelected, onClick, priceHistory }) {
-  const isPositive = (data?.changePercent || 0) >= 0;
+  const changePercent = data?.changePercent ?? data?.change ?? 0;
+  const isPositive = changePercent >= 0;
   const color = CRYPTO_COLORS[symbol] || '#6366f1';
   const icon = CRYPTO_ICONS[symbol] || symbol.slice(0, 2);
 
@@ -110,7 +111,7 @@ function CryptoCard({ symbol, data, isSelected, onClick, priceHistory }) {
           <p className={`text-[10px] sm:text-xs font-medium truncate ${
             isPositive ? 'text-emerald-400' : 'text-red-400'
           }`}>
-            {isPositive ? '+' : ''}{(data?.changePercent || 0).toFixed(2)}%
+            {isPositive ? '+' : ''}{changePercent.toFixed(2)}%
           </p>
         </div>
       </div>
@@ -140,8 +141,9 @@ export default function CryptoMarkets({ prices, onSelectSymbol, selectedSymbol }
   }, [prices]);
 
   const filteredPrices = Object.entries(prices).filter(([symbol, data]) => {
-    if (filter === 'gainers') return (data?.changePercent || 0) > 0;
-    if (filter === 'losers') return (data?.changePercent || 0) < 0;
+    const change = data?.changePercent ?? data?.change ?? 0;
+    if (filter === 'gainers') return change > 0;
+    if (filter === 'losers') return change < 0;
     return true;
   });
 

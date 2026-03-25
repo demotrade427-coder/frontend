@@ -5,7 +5,7 @@ import { FaBitcoin, FaEthereum, FaMonero } from 'react-icons/fa';
 import { SiBinance, SiCardano, SiPolkadot } from 'react-icons/si';
 import { TbCurrencySolana } from 'react-icons/tb';
 import { MdKeyboardArrowUp, MdKeyboardArrowDown } from 'react-icons/md';
-import API from '../utils/api';
+import { useBinanceMarketData } from '../hooks/useBinanceMarketData';
 
 const CRYPTO_ICONS = {
   BTCUSDT: FaBitcoin,
@@ -169,51 +169,11 @@ function LoadingSkeleton() {
 }
 
 export default function MarketList({ onSelectSymbol, selectedSymbol }) {
-  const [marketData, setMarketData] = useState({});
-  const [loading, setLoading] = useState(true);
+  const { marketData, loading } = useBinanceMarketData();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState('rank');
   const [showAll, setShowAll] = useState(false);
-
-  const fetchMarketData = async () => {
-    try {
-      const res = await API.get('/trading/prices');
-      if (res.data) {
-        const dataWithDefaults = {};
-        Object.keys(FALLBACK_PRICES).forEach(symbol => {
-          dataWithDefaults[symbol] = {
-            ...FALLBACK_PRICES[symbol],
-            ...res.data[symbol],
-            symbol
-          };
-        });
-        Object.keys(res.data).forEach(symbol => {
-          if (!dataWithDefaults[symbol]) {
-            dataWithDefaults[symbol] = {
-              ...res.data[symbol],
-              symbol
-            };
-          }
-        });
-        setMarketData(dataWithDefaults);
-      }
-    } catch (err) {
-      const dataWithDefaults = {};
-      Object.keys(FALLBACK_PRICES).forEach(symbol => {
-        dataWithDefaults[symbol] = { ...FALLBACK_PRICES[symbol], symbol };
-      });
-      setMarketData(dataWithDefaults);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchMarketData();
-    const interval = setInterval(fetchMarketData, 10000);
-    return () => clearInterval(interval);
-  }, []);
 
   const filteredData = useMemo(() => {
     let data = Object.values(marketData);

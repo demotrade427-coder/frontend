@@ -5,27 +5,26 @@ import { HiTrendingUp, HiTrendingDown, HiCreditCard, HiChartBar, HiArrowUp, HiAr
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import API from '../utils/api';
 import CryptoMarkets from '../components/CryptoMarkets';
+import { useBinanceMarketData } from '../hooks/useBinanceMarketData';
 
 function Dashboard() {
   const [dashboard, setDashboard] = useState(null);
   const [trades, setTrades] = useState([]);
-  const [prices, setPrices] = useState({});
   const [loading, setLoading] = useState(true);
   const [liveTrades, setLiveTrades] = useState([]);
   const [selectedCrypto, setSelectedCrypto] = useState('BTCUSDT');
   const intervalRef = useRef(null);
+  const { marketData, connectionStatus } = useBinanceMarketData();
 
   const fetchData = async () => {
     try {
-      const [dashRes, tradesRes, pricesRes] = await Promise.all([
+      const [dashRes, tradesRes] = await Promise.all([
         API.get('/dashboard/user'),
-        API.get('/trading/my-trades').catch(() => ({ data: [] })),
-        API.get('/trading/prices').catch(() => ({}))
+        API.get('/trading/my-trades').catch(() => ({ data: [] }))
       ]);
       
       setDashboard(dashRes.data);
       setTrades(tradesRes.data || []);
-      setPrices(pricesRes.data || {});
       
       if (tradesRes.data?.length > 0) {
         const recentTrades = tradesRes.data.slice(0, 10).map(t => ({
@@ -135,7 +134,7 @@ function Dashboard() {
         {/* Left: Crypto Markets List - Hidden on mobile */}
         <div className="hidden xl:block xl:col-span-1">
           <CryptoMarkets 
-            prices={prices} 
+            prices={marketData} 
             selectedSymbol={selectedCrypto}
             onSelectSymbol={setSelectedCrypto}
           />
