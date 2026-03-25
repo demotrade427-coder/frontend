@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import API from '../../utils/api';
-import { HiUsers, HiArrowDown, HiArrowUp, HiTrendingUp, HiRefresh } from 'react-icons/hi';
+import { HiUsers, HiArrowDown, HiArrowUp, HiTrendingUp, HiRefresh, HiCog } from 'react-icons/hi';
+import { toast } from 'react-hot-toast';
 
 const StatCard = ({ title, value, subtitle, icon: Icon, color }) => (
   <motion.div
@@ -28,22 +29,36 @@ export default function AdminOverview() {
   const [deposits, setDeposits] = useState([]);
   const [withdrawals, setWithdrawals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [autoSettle, setAutoSettle] = useState(true);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [statsRes, depositsRes, withdrawalsRes] = await Promise.all([
+      const [statsRes, depositsRes, withdrawalsRes, settingsRes] = await Promise.all([
         API.get('/admin/dashboard-stats').catch(() => ({ data: {} })),
         API.get('/admin/deposits').catch(() => ({ data: [] })),
-        API.get('/admin/withdrawals').catch(() => ({ data: [] }))
+        API.get('/admin/withdrawals').catch(() => ({ data: [] })),
+        API.get('/admin/settings/auto-settlement').catch(() => ({ data: { enabled: true } }))
       ]);
       setStats(statsRes.data || {});
       setDeposits(depositsRes.data?.slice(0, 5) || []);
       setWithdrawals(withdrawalsRes.data?.slice(0, 5) || []);
+      setAutoSettle(settingsRes.data?.enabled ?? true);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const toggleAutoSettle = async () => {
+    const newValue = !autoSettle;
+    try {
+      await API.patch('/admin/settings/auto-settlement', { enabled: newValue });
+      setAutoSettle(newValue);
+      toast.success(`Auto-settlement ${newValue ? 'enabled' : 'disabled'}`);
+    } catch (error) {
+      toast.error('Failed to update setting');
     }
   };
 
@@ -79,9 +94,27 @@ export default function AdminOverview() {
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">Dashboard Overview</h1>
           <p className="text-slate-400 mt-1 text-xs sm:text-sm lg:text-base">Welcome back! Here's what's happening.</p>
         </div>
-        <button onClick={fetchData} className="p-2 sm:p-3 bg-slate-800/50 border border-white/10 rounded-lg sm:rounded-xl text-slate-400 hover:text-white hover:bg-white/5 w-full sm:w-auto justify-center flex">
-          <HiRefresh className="w-4 h-4 sm:w-5 sm:h-5" />
-        </button>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex items-center gap-2 bg-slate-800/50 border border-white/10 rounded-lg px-3 py-2 flex-1 sm:flex-none">
+            <HiCog className={`w-4 h-4 ${autoSettle ? 'text-emerald-400' : 'text-slate-500'}`} />
+            <span className="text-white text-xs sm:text-sm">Auto Settle</span>
+            <button
+              onClick={toggleAutoSettle}
+              className={`relative w-10 sm:w-12 h-5 sm:h-6 rounded-full transition-colors ${
+                autoSettle ? 'bg-emerald-500' : 'bg-slate-600'
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-4 sm:w-5 h-4 sm:h-5 bg-white rounded-full transition-transform ${
+                  autoSettle ? 'translate-x-5 sm:translate-x-6' : ''
+                }`}
+              />
+            </button>
+          </div>
+          <button onClick={fetchData} className="p-2 sm:p-3 bg-slate-800/50 border border-white/10 rounded-lg sm:rounded-xl text-slate-400 hover:text-white hover:bg-white/5">
+            <HiRefresh className="w-4 h-4 sm:w-5 sm:h-5" />
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
