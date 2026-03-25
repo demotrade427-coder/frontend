@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { HiTrendingUp, HiTrendingDown, HiRefresh } from 'react-icons/hi';
+import { HiTrendingUp, HiTrendingDown, HiRefresh, HiGlobe } from 'react-icons/hi';
 import { createChart, CandlestickSeries } from 'lightweight-charts';
-import { API_BASE_URL } from '../config';
+
+const BINANCE_REST_URL = 'https://api.binance.com/api/v3';
 
 const CRYPTO_NAMES = {
   BTCUSDT: 'Bitcoin', ETHUSDT: 'Ethereum', BNBUSDT: 'BNB', SOLUSDT: 'Solana',
@@ -15,33 +16,6 @@ const TIMEFRAMES = [
   { label: '1m', value: '1m' }, { label: '5m', value: '5m' },
   { label: '15m', value: '15m' }, { label: '1H', value: '1h' },
 ];
-
-const FALLBACK_PRICES = {
-  BTCUSDT: { price: 67450.00, change: 2.15 },
-  ETHUSDT: { price: 3520.00, change: 1.82 },
-  BNBUSDT: { price: 605.00, change: -0.45 },
-  SOLUSDT: { price: 145.00, change: 3.25 },
-};
-
-const generateFallbackCandles = (basePrice) => {
-  const candles = [];
-  let price = basePrice * 0.95;
-  const now = Math.floor(Date.now() / 1000);
-  
-  for (let i = 100; i >= 0; i--) {
-    const time = now - (i * 60);
-    const change = (Math.random() - 0.48) * (basePrice * 0.002);
-    const open = price;
-    const close = price + change;
-    const high = Math.max(open, close) + Math.random() * (basePrice * 0.001);
-    const low = Math.min(open, close) - Math.random() * (basePrice * 0.001);
-    
-    candles.push({ time, open, high, low, close });
-    price = close;
-  }
-  
-  return candles;
-};
 
 export default function TradingChart({ symbol = 'BTCUSDT', onPriceUpdate }) {
   const chartContainerRef = useRef(null);
@@ -56,7 +30,6 @@ export default function TradingChart({ symbol = 'BTCUSDT', onPriceUpdate }) {
   const [prevPrice, setPrevPrice] = useState(null);
   const [priceDirection, setPriceDirection] = useState(null);
   const [stats, setStats] = useState({ high: 0, low: 0, volume: 0, change: 0 });
-  const [usingFallback, setUsingFallback] = useState(false);
 
   const cleanup = useCallback(() => {
     if (updateIntervalRef.current) {
@@ -137,7 +110,7 @@ export default function TradingChart({ symbol = 'BTCUSDT', onPriceUpdate }) {
     try {
       const tfMap = { '1m': '1m', '5m': '5m', '15m': '15m', '1h': '1h' };
       
-      const response = await fetch(`${API_BASE_URL}/trading/binance/klines?symbol=${sym}&interval=${tfMap[tf]}&limit=500`);
+      const response = await fetch(`${BINANCE_REST_URL}/klines?symbol=${sym}&interval=${tfMap[tf]}&limit=500`);
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
@@ -181,32 +154,15 @@ export default function TradingChart({ symbol = 'BTCUSDT', onPriceUpdate }) {
 
       setLoading(false);
     } catch (e) {
-      setUsingFallback(true);
-      
-      const basePrice = FALLBACK_PRICES[symbol]?.price || 1000;
-      const fallbackCandles = generateFallbackCandles(basePrice);
-      
-      if (candleSeriesRef.current) {
-        candleSeriesRef.current.setData(fallbackCandles);
-        chartInstanceRef.current?.timeScale().fitContent();
-      }
-      
-      setCurrentPrice(basePrice);
-      setStats({
-        high: basePrice * 1.02,
-        low: basePrice * 0.98,
-        volume: 1000000,
-        change: FALLBACK_PRICES[symbol]?.change || 1.5
-      });
+      console.error('Failed to fetch klines:', e);
+      setError('Failed to load chart data');
       setLoading(false);
     }
   }, [symbol]);
 
   const updatePrice = useCallback(async (sym) => {
-    if (usingFallback) return;
-    
     try {
-      const response = await fetch(`${API_BASE_URL}/trading/binance/ticker?symbol=${sym}`);
+      const response = await fetch(`${BINANCE_REST_URL}/ticker/24hr?symbol=${sym}`);
       if (response.ok) {
         const data = await response.json();
         const price = parseFloat(data.lastPrice);
@@ -229,9 +185,9 @@ export default function TradingChart({ symbol = 'BTCUSDT', onPriceUpdate }) {
         if (onPriceUpdate) onPriceUpdate(price);
       }
     } catch (e) {
-      // Silent fail for price updates
+      console.error('Failed to update price:', e);
     }
-  }, [usingFallback, onPriceUpdate]);
+  }, [onPriceUpdate]);
 
   useEffect(() => {
     let mounted = true;
@@ -260,18 +216,16 @@ export default function TradingChart({ symbol = 'BTCUSDT', onPriceUpdate }) {
   }, [symbol, timeframe, initChart, fetchKlines, cleanup]);
 
   useEffect(() => {
-    if (!usingFallback) {
-      updateIntervalRef.current = setInterval(() => {
-        updatePrice(symbol);
-      }, 5000);
-    }
+    updateIntervalRef.current = setInterval(() => {
+      updatePrice(symbol);
+    }, 5000);
 
     return () => {
       if (updateIntervalRef.current) {
         clearInterval(updateIntervalRef.current);
       }
     };
-  }, [symbol, usingFallback, updatePrice]);
+  }, [symbol, updatePrice]);
 
   const isPositive = stats.change >= 0;
 
@@ -301,9 +255,10 @@ export default function TradingChart({ symbol = 'BTCUSDT', onPriceUpdate }) {
             </div>
             <div className="flex items-center gap-2">
               <p className="text-slate-500 text-[10px] sm:text-xs lg:text-sm">{CRYPTO_NAMES[symbol] || symbol}</p>
-              {usingFallback && (
-                <span className="text-[10px] px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded">Demo</span>
-              )}
+              <span className="text-[10px] px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded flex items-center gap-1">
+                <HiGlobe className="w-3 h-3" />
+                LIVE
+              </span>
             </div>
           </div>
           

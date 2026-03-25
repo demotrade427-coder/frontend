@@ -46,32 +46,8 @@ const CRYPTO_NAMES = {
 const ALL_PAIRS = [
   'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT',
   'ADAUSDT', 'DOGEUSDT', 'AVAXUSDT', 'DOTUSDT', 'MATICUSDT',
-  'LINKUSDT', 'LTCUSDT', 'UNIUSDT', 'ATOMUSDT', 'XLMUSDT',
-  'NEARUSDT', 'FTMUSDT', 'ALGOUSDT', 'ICPUSDT', 'FILUSDT'
+  'LINKUSDT', 'LTCUSDT', 'UNIUSDT', 'ATOMUSDT', 'XLMUSDT'
 ];
-
-const FALLBACK_PRICES = {
-  BTCUSDT: { price: 70000, change: 2.5, volume: 28500000000, high: 71000, low: 69000 },
-  ETHUSDT: { price: 2200, change: 1.8, volume: 15200000000, high: 2250, low: 2150 },
-  BNBUSDT: { price: 600, change: -0.5, volume: 1800000000, high: 610, low: 595 },
-  SOLUSDT: { price: 150, change: 3.2, volume: 3500000000, high: 155, low: 145 },
-  XRPUSDT: { price: 0.52, change: -1.2, volume: 1200000000, high: 0.54, low: 0.51 },
-  ADAUSDT: { price: 0.45, change: 0.8, volume: 450000000, high: 0.47, low: 0.44 },
-  DOGEUSDT: { price: 0.12, change: 5.1, volume: 800000000, high: 0.13, low: 0.11 },
-  AVAXUSDT: { price: 35, change: 2.3, volume: 520000000, high: 36, low: 34 },
-  DOTUSDT: { price: 7.5, change: -0.8, volume: 310000000, high: 7.7, low: 7.4 },
-  MATICUSDT: { price: 0.85, change: 1.5, volume: 420000000, high: 0.88, low: 0.83 },
-  LINKUSDT: { price: 15, change: 0.9, volume: 580000000, high: 15.5, low: 14.8 },
-  LTCUSDT: { price: 85, change: -0.3, volume: 390000000, high: 87, low: 84 },
-  UNIUSDT: { price: 10, change: 2.1, volume: 220000000, high: 10.3, low: 9.8 },
-  ATOMUSDT: { price: 9, change: 1.2, volume: 180000000, high: 9.2, low: 8.8 },
-  XLMUSDT: { price: 0.12, change: 0.7, volume: 95000000, high: 0.125, low: 0.118 },
-  NEARUSDT: { price: 5.2, change: 3.5, volume: 420000000, high: 5.4, low: 5.0 },
-  FTMUSDT: { price: 0.72, change: 2.1, volume: 280000000, high: 0.74, low: 0.70 },
-  ALGOUSDT: { price: 0.18, change: -0.5, volume: 120000000, high: 0.19, low: 0.177 },
-  ICPUSDT: { price: 12.5, change: 4.2, volume: 350000000, high: 13.0, low: 12.0 },
-  FILUSDT: { price: 5.8, change: 1.8, volume: 410000000, high: 6.0, low: 5.6 }
-};
 
 function formatPrice(price) {
   if (!price) return '0.00';

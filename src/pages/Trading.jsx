@@ -8,30 +8,13 @@ import MarketList from '../components/MarketList';
 import TradingChart from '../components/TradingChart';
 import MarketTicker from '../components/MarketTicker';
 import TradeTimer from '../components/TradeTimer';
+import { useBinanceMarketData } from '../hooks/useBinanceMarketData';
 
 const POPULAR_PAIRS = [
   'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT',
   'ADAUSDT', 'DOGEUSDT', 'AVAXUSDT', 'DOTUSDT', 'MATICUSDT',
   'LINKUSDT', 'LTCUSDT', 'UNIUSDT', 'ATOMUSDT', 'XLMUSDT'
 ];
-
-const FALLBACK_PRICES = {
-  BTCUSDT: { price: 67450.00, change: 2.15, high: 68000, low: 66000, volume: 28500000000 },
-  ETHUSDT: { price: 3520.00, change: 1.82, high: 3600, low: 3450, volume: 15200000000 },
-  BNBUSDT: { price: 605.00, change: -0.45, high: 615, low: 598, volume: 1800000000 },
-  SOLUSDT: { price: 145.00, change: 3.25, high: 150, low: 140, volume: 3500000000 },
-  XRPUSDT: { price: 0.52, change: -1.20, high: 0.54, low: 0.51, volume: 1200000000 },
-  ADAUSDT: { price: 0.45, change: 0.80, high: 0.47, low: 0.44, volume: 450000000 },
-  DOGEUSDT: { price: 0.12, change: 5.10, high: 0.13, low: 0.11, volume: 800000000 },
-  AVAXUSDT: { price: 35.00, change: 2.30, high: 36, low: 34, volume: 520000000 },
-  DOTUSDT: { price: 7.50, change: -0.80, high: 7.7, low: 7.4, volume: 310000000 },
-  MATICUSDT: { price: 0.85, change: 1.50, high: 0.88, low: 0.83, volume: 420000000 },
-  LINKUSDT: { price: 15.00, change: 0.90, high: 15.5, low: 14.8, volume: 580000000 },
-  LTCUSDT: { price: 85.00, change: -0.30, high: 87, low: 84, volume: 390000000 },
-  UNIUSDT: { price: 10.00, change: 2.10, high: 10.3, low: 9.8, volume: 220000000 },
-  ATOMUSDT: { price: 9.00, change: 1.20, high: 9.2, low: 8.8, volume: 180000000 },
-  XLMUSDT: { price: 0.12, change: 0.70, high: 0.125, low: 0.118, volume: 95000000 },
-};
 
 function formatPrice(price) {
   if (!price) return '0.00';
@@ -123,8 +106,7 @@ function TradeResultModal({ result, trade, onClose }) {
 
 export default function Trading() {
   const navigate = useNavigate();
-  const [prices, setPrices] = useState({});
-  const [binancePrices, setBinancePrices] = useState({});
+  const { marketData, connectionStatus, refresh } = useBinanceMarketData();
   const [profile, setProfile] = useState({});
   const [trades, setTrades] = useState([]);
   const [selectedSymbol, setSelectedSymbol] = useState('BTCUSDT');
@@ -134,9 +116,7 @@ export default function Trading() {
   const [showMobileMarkets, setShowMobileMarkets] = useState(false);
   const [tradeResultModal, setTradeResultModal] = useState(null);
   const [recentSettledTrades, setRecentSettledTrades] = useState([]);
-  const [dataSource, setDataSource] = useState('backend');
   
-  const wsRef = useRef(null);
   const intervalRef = useRef(null);
 
   useEffect(() => {
@@ -147,91 +127,19 @@ export default function Trading() {
     }
     
     fetchData();
-    connectBinanceWebSocket();
 
     intervalRef.current = setInterval(() => {
       fetchTrades();
       fetchProfile();
-      fetchBackendPrices();
     }, 5000);
 
     return () => {
-      if (wsRef.current) {
-        wsRef.current.onclose = null;
-        wsRef.current.onerror = null;
-        wsRef.current.close();
-      }
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [navigate]);
 
-  const connectBinanceWebSocket = () => {
-    if (wsRef.current) {
-      wsRef.current.onclose = null;
-      wsRef.current.onerror = null;
-      wsRef.current.close();
-    }
-
-    try {
-      const streams = POPULAR_PAIRS.map(p => `${p.toLowerCase()}@ticker`).join('/');
-      const ws = new WebSocket(`wss://stream.binance.com:9443/stream?streams=${streams}`);
-      wsRef.current = ws;
-
-      ws.onopen = () => {
-        setDataSource('binance');
-      };
-
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.data) {
-            const ticker = data.data;
-            setBinancePrices(prev => ({
-              ...prev,
-              [ticker.s]: {
-                price: parseFloat(ticker.c),
-                change: parseFloat(ticker.P),
-                high: parseFloat(ticker.h),
-                low: parseFloat(ticker.l),
-                volume: parseFloat(ticker.v),
-                name: ticker.s.replace('USDT', '')
-              }
-            }));
-          }
-        } catch (err) {
-          // Silently handle parse errors
-        }
-      };
-
-      ws.onerror = () => {
-        setDataSource('backend');
-      };
-      
-      ws.onclose = () => {
-        setDataSource('backend');
-        setTimeout(connectBinanceWebSocket, 10000);
-      };
-    } catch (error) {
-      setDataSource('backend');
-      setTimeout(connectBinanceWebSocket, 10000);
-    }
-  };
-
-  const fetchBackendPrices = async () => {
-    try {
-      const pricesRes = await API.get('/trading/binance/tickers');
-      if (pricesRes.data && pricesRes.data.length > 0) {
-        const priceObj = {};
-        pricesRes.data.forEach(t => {
-          priceObj[t.symbol] = t;
-        });
-        setPrices(priceObj);
-      } else {
-        setPrices(FALLBACK_PRICES);
-      }
-    } catch (err) {
-      setPrices(FALLBACK_PRICES);
-    }
+  const handleRefresh = () => {
+    refresh();
   };
 
   const fetchTrades = async () => {
@@ -268,14 +176,12 @@ export default function Trading() {
 
   const fetchData = async () => {
     try {
-      const [profileRes, tradesRes, pricesRes] = await Promise.all([
+      const [profileRes, tradesRes] = await Promise.all([
         API.get('/trading/profile'),
-        API.get('/trading/my-trades'),
-        API.get('/trading/prices')
+        API.get('/trading/my-trades')
       ]);
       setProfile(profileRes.data || {});
       setTrades(tradesRes.data || []);
-      setPrices(pricesRes.data || {});
     } catch (error) {
       if (error.response?.status === 401) {
         localStorage.removeItem('token');
@@ -302,9 +208,7 @@ export default function Trading() {
     }
   };
 
-  const displayPrices = dataSource === 'binance' && Object.keys(binancePrices).length > 0 
-    ? binancePrices 
-    : prices;
+  const displayPrices = marketData;
   const selectedPrice = displayPrices[selectedSymbol] || { price: 0, change: 0, name: selectedSymbol };
 
   if (loading) {
@@ -340,7 +244,7 @@ export default function Trading() {
             <p className="text-slate-400 text-xs sm:text-sm">Win up to 85%</p>
           </div>
           <button
-            onClick={fetchBackendPrices}
+            onClick={handleRefresh}
             className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-white/5 rounded-lg hover:bg-white/10 text-slate-400 text-xs sm:text-sm"
           >
             <HiRefresh className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -407,8 +311,8 @@ export default function Trading() {
               <div className="flex items-center justify-between mb-3 sm:mb-4">
                 <h3 className="text-base sm:text-lg font-bold text-white">Place Trade</h3>
                 <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${dataSource === 'binance' ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
-                  <span className="text-[10px] sm:text-xs text-slate-500">{dataSource === 'binance' ? 'Live' : 'Cached'}</span>
+                  <div className={`w-2 h-2 rounded-full ${connectionStatus === 'connected' ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+                  <span className="text-[10px] sm:text-xs text-slate-500">{connectionStatus === 'connected' ? 'Live' : 'Connecting...'}</span>
                 </div>
               </div>
               

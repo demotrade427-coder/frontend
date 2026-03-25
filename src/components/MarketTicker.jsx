@@ -4,24 +4,7 @@ import { HiTrendingUp, HiTrendingDown } from 'react-icons/hi';
 import { FaBitcoin, FaEthereum } from 'react-icons/fa';
 import { SiBinance, SiCardano, SiPolkadot } from 'react-icons/si';
 import { TbCurrencySolana } from 'react-icons/tb';
-
-const FALLBACK_DATA = {
-  BTCUSDT: { price: 70000, change: 2.5 },
-  ETHUSDT: { price: 2200, change: 1.8 },
-  BNBUSDT: { price: 600, change: -0.5 },
-  SOLUSDT: { price: 150, change: 3.2 },
-  XRPUSDT: { price: 0.52, change: -1.2 },
-  ADAUSDT: { price: 0.45, change: 0.8 },
-  DOGEUSDT: { price: 0.12, change: 5.1 },
-  AVAXUSDT: { price: 35, change: 2.3 },
-  DOTUSDT: { price: 7.5, change: -0.8 },
-  MATICUSDT: { price: 0.85, change: 1.5 },
-  LINKUSDT: { price: 15, change: 0.9 },
-  LTCUSDT: { price: 85, change: -0.3 },
-  UNIUSDT: { price: 10, change: 2.1 },
-  ATOMUSDT: { price: 9, change: 1.2 },
-  XLMUSDT: { price: 0.12, change: 0.7 }
-};
+import { useBinanceMarketData } from '../hooks/useBinanceMarketData';
 
 const CRYPTO_ICONS = {
   BTCUSDT: FaBitcoin,
@@ -140,15 +123,17 @@ function TickerItem({ symbol, data, isSelected, onClick }) {
   );
 }
 
-export default function MarketTicker({ marketData, onSelectSymbol, selectedSymbol }) {
+export default function MarketTicker({ marketData: propMarketData, onSelectSymbol, selectedSymbol }) {
+  const { marketData: hookMarketData } = useBinanceMarketData();
   const [position, setPosition] = useState(0);
   const animationRef = useRef(null);
   
-  const effectiveData = Object.keys(marketData).length > 0 ? marketData : FALLBACK_DATA;
+  const marketData = propMarketData || hookMarketData;
+  const effectiveData = Object.keys(marketData).length > 0 ? marketData : {};
   
   const tickers = Object.entries(effectiveData).map(([symbol, data]) => ({
     symbol,
-    data: marketData[symbol] || data
+    data: data
   }));
 
   useEffect(() => {
